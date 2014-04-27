@@ -1,0 +1,22 @@
+cmake_minimum_required(VERSION 2.8)
+
+project(Ventilation)
+
+set(vent_SOURCES flux.cpp contact.cpp)
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ferror-limit=5 -std=c++11 -Wall -Wno-deprecated-register")
+
+FIND_PACKAGE(SWIG REQUIRED)
+INCLUDE(${SWIG_USE_FILE})
+
+FIND_PACKAGE(PythonLibs)
+INCLUDE_DIRECTORIES(${PYTHON_INCLUDE_PATH})
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
+
+add_library(vent SHARED ${vent_SOURCES})
+
+SET_SOURCE_FILES_PROPERTIES(vent.i PROPERTIES CPLUSPLUS ON)
+SET_SOURCE_FILES_PROPERTIES(vent.i PROPERTIES SWIG_FLAGS "-Wall")
+SWIG_ADD_MODULE(vent python vent.i)
+SWIG_LINK_LIBRARIES(vent ${PYTHON_LIBRARIES} vent)
+

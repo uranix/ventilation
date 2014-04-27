@@ -1,0 +1,29 @@
+
+	MAYBECONST state<nc> &operator()(int i, int j, int k) MAYBECONST {
+		assert(i >= 0 && i < nx);
+		assert(j >= 0 && j < ny);
+		assert(k >= 0 && k < nz);
+		return _states[i + (j + k * ny) * nx];
+	}
+
+	MAYBECONST flux<nc> &x_flux(int i, int j, int k) MAYBECONST {
+		assert(i >= 0 && i <= nx);
+		assert(j >= 0 && j < ny);
+		assert(k >= 0 && k < nz);
+		return _fluxes[0][i + (j + k * ny) * (nx + 1)];
+	}
+	
+	MAYBECONST flux<nc> &y_flux(int i, int j, int k) MAYBECONST {
+		assert(i >= 0 && i < nx);
+		assert(j >= 0 && j <= ny);
+		assert(k >= 0 && k < nz);
+		return _fluxes[1][i + (j + k * (ny + 1)) * nx];
+	}
+	
+	MAYBECONST flux<nc> &z_flux(int i, int j, int k) MAYBECONST {
+		assert(i >= 0 && i < nx);
+		assert(j >= 0 && j < ny);
+		assert(k >= 0 && k <= nz);
+		return _fluxes[2][i + (j + k * ny) * nx];
+	}
+
