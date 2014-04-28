@@ -1,6 +1,6 @@
 template<int nc>
 template<typename T>
-void room<nc>::put(std::fstream &f, T value) const {
+void scene_object<nc>::put(std::fstream &f, T value) const {
 	char buf[sizeof(T)];
 	*reinterpret_cast<T *>(&buf[0]) = value;
 	for (int s = 0; s < sizeof(T) / 2; s++) {
@@ -10,13 +10,18 @@ void room<nc>::put(std::fstream &f, T value) const {
 }
 
 template<int nc>
-void room<nc>::save(const int step) const {
-	std::string fn(id);
+void scene_object<nc>::save(const std::string &prefix, const int step) const {
+	std::string fn(prefix + id);
 	fn += ".";
 	fn += std::to_string(step);
 	fn += ".vtk";
 
 	std::fstream f(fn.c_str(), std::ios::out | std::ios::binary);
+
+	if (!f) {
+		std::cerr << "Could not save file " << fn << std::endl;
+		return;
+	}
 
 	f << "# vtk DataFile Version 3.0\n";
 	f << "Block dump\n";

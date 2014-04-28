@@ -2,7 +2,10 @@
 %{
 #include "vec.h"
 #include "state.h"
+#include "scene_object.h"
 #include "room.h"
+#include "pipe.h"
+#include "atm.h"
 #include "solver.h"
 %}
 
@@ -20,6 +23,7 @@ struct gasinfo {
     %rename(set_component) set(int, double, double);
     void set(int nc, double molar_mass, double gamma_factor);
 };
+%template(GasInfo) gasinfo<2>;
 
 %nodefaultctor box;
 struct box {
@@ -32,7 +36,6 @@ struct state {
     void from_rue(const std::vector<double> &r, const vec &u, double eps);
     void from_ruT(const std::vector<double> &r, const vec &u, double T, const gasinfo<nc> &gas);
 };
-
 %template(State) state<2>;
 
 %feature("director") functor;
@@ -44,27 +47,41 @@ struct functor {
 };
 %template(Functor) functor<2>;
 
-template<int nc>
-struct room : public box {
-    room(int nx, int ny, int nz, const vec &ll, const vec &ur, const std::string &id, const gasinfo<nc> &gas);
-	void fill(functor<nc> &f);
-};
-
-%template(Scene) std::vector<room<2> *>;
+%nodefaultctor objects::scene_object;
+namespace objects {
+    template<int nc>
+    struct scene_object : public box {
+        void fill(functor<nc> &f);
+    };
+    template<int nc>
+    struct room : public scene_object<nc> {
+        room(int nx, int ny, int nz, const vec &ll, const vec &ur, const std::string &id, const gasinfo<nc> &gas);
+    };
+    template<int nc>
+    struct pipe : public scene_object<nc> {
+        pipe(int n, int dir, const vec &ll, const vec &ur, const std::string &id, const gasinfo<nc> &gas);
+    };
+    template<int nc>
+    struct atm : public scene_object<nc> {
+        atm(const vec &ll, const vec &ur, const std::string &id, const gasinfo<nc> &gas);
+    };
+}
+%template(SceneObject) objects::scene_object<2>;
+%template(Room) objects::room<2>;
+%template(Pipe) objects::pipe<2>;
+%template(Atm) objects::atm<2>;
+%template(Scene) std::vector<objects::scene_object<2> *>;
 
 template<int nc>
 struct solver {
-	solver(const std::vector<room<nc> *> &scene, const double C);
+	solver(const std::vector<objects::scene_object<nc> *> &scene, const double C);
 	void compute_fluxes();
 	double estimate_timestep();
 	void integrate(const double dt);
-	void save();
+	void save(const std::string &);
     double time() const;
     int step() const;
 };
+%template(Solver) solver<2>;
 
 void connect(box &, box &);
-
-%template(GasInfo) gasinfo<2>;
-%template(Room) room<2>;
-%template(Solver) solver<2>;

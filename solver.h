@@ -1,18 +1,18 @@
 #ifndef __SOLVER_H__
 #define __SOLVER_H__
 
-#include "room.h"
+#include "scene_object.h"
 
 #include <vector>
 
 template<int nc>
 class solver {
-	std::vector<room<nc> *> scene;
+	std::vector<objects::scene_object<nc> *> scene;
 	const double C;
 	double t;
 	int _step;
 public:
-	solver(const std::vector<room<nc> *> &scene, const double C) : scene(scene), C(C) 
+	solver(const std::vector<objects::scene_object<nc> *> &scene, const double C) : scene(scene), C(C) 
 	{
 		t = 0;
 		_step = 0;
@@ -26,7 +26,7 @@ public:
 	double estimate_timestep() {
 		double dtmin = 1e20;
 		for (auto p : scene) {
-			double dt = p->get_min_h() / p->get_max_speed();
+			double dt = p->get_max_dt();
 			if (dt < dtmin)
 				dtmin = dt;
 		}
@@ -39,9 +39,9 @@ public:
 		t += dt;
 		_step++;
 	}
-	void save() {
+	void save(const std::string &prefix) {
 		for (auto p : scene)
-			p->save(_step);
+			p->save(prefix, _step);
 	}
 	double time() const {
 		return t;

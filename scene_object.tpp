@@ -1,5 +1,5 @@
 template<int nc>
-void room<nc>::compute_inner_fluxes() {
+void scene_object<nc>::compute_inner_fluxes() {
 	for (int i = 1; i < nx; i++)
 		for (int j = 0; j < ny; j++)
 			for (int k = 0; k < nz; k++) {
@@ -24,7 +24,7 @@ void room<nc>::compute_inner_fluxes() {
 }
 
 template<int nc>
-void room<nc>::compute_outer_fluxes() {
+void scene_object<nc>::compute_outer_fluxes() {
 
 	const double tol = 1e-4;
 
@@ -37,7 +37,7 @@ void room<nc>::compute_outer_fluxes() {
 			x_flux(i, j, k).zero();
 			for (auto &z : side(0, 0, i, j, k)) {
 				Sfrac -= z.Sfrac;
-				x_flux(i, j, k).add((*static_cast<room<nc> *>(z.other))(z.ri, z.rj, z.rk), (*this)(i, j, k), n, z.Sfrac, gas);
+				x_flux(i, j, k).add((*static_cast<scene_object<nc> *>(z.other))(z.ri, z.rj, z.rk), (*this)(i, j, k), n, z.Sfrac, gas);
 			}
 			if (Sfrac > tol)
 				x_flux(i, j, k).add_reflect((*this)(i, j, k), false, n, Sfrac, gas);
@@ -47,7 +47,7 @@ void room<nc>::compute_outer_fluxes() {
 			x_flux(i, j, k).zero();
 			for (auto &z : side(0, 1, i, j, k)) {
 				Sfrac -= z.Sfrac;
-				x_flux(i, j, k).add((*this)(i-1, j, k), (*static_cast<room<nc> *>(z.other))(z.ri, z.rj, z.rk), n, z.Sfrac, gas);
+				x_flux(i, j, k).add((*this)(i-1, j, k), (*static_cast<scene_object<nc> *>(z.other))(z.ri, z.rj, z.rk), n, z.Sfrac, gas);
 			}
 			if (Sfrac > tol)
 				x_flux(i, j, k).add_reflect((*this)(i-1, j, k), true, n, Sfrac, gas);
@@ -61,7 +61,7 @@ void room<nc>::compute_outer_fluxes() {
 			y_flux(i, j, k).zero();
 			for (auto &z : side(1, 0, i, j, k)) {
 				Sfrac -= z.Sfrac;
-				y_flux(i, j, k).add((*static_cast<room<nc> *>(z.other))(z.ri, z.rj, z.rk), (*this)(i, j, k), n, z.Sfrac, gas);
+				y_flux(i, j, k).add((*static_cast<scene_object<nc> *>(z.other))(z.ri, z.rj, z.rk), (*this)(i, j, k), n, z.Sfrac, gas);
 			}
 			if (Sfrac > tol)
 				y_flux(i, j, k).add_reflect((*this)(i, j, k), false, n, Sfrac, gas);
@@ -71,7 +71,7 @@ void room<nc>::compute_outer_fluxes() {
 			y_flux(i, j, k).zero();
 			for (auto &z : side(1, 1, i, j, k)) {
 				Sfrac -= z.Sfrac;
-				y_flux(i, j, k).add((*this)(i, j-1, k), (*static_cast<room<nc> *>(z.other))(z.ri, z.rj, z.rk), n, z.Sfrac, gas);
+				y_flux(i, j, k).add((*this)(i, j-1, k), (*static_cast<scene_object<nc> *>(z.other))(z.ri, z.rj, z.rk), n, z.Sfrac, gas);
 			}
 			if (Sfrac > tol)
 				y_flux(i, j, k).add_reflect((*this)(i, j-1, k), true, n, Sfrac, gas);
@@ -85,7 +85,7 @@ void room<nc>::compute_outer_fluxes() {
 			z_flux(i, j, k).zero();
 			for (auto &z : side(2, 0, i, j, k)) {
 				Sfrac -= z.Sfrac;
-				z_flux(i, j, k).add((*static_cast<room<nc> *>(z.other))(z.ri, z.rj, z.rk), (*this)(i, j, k), n, z.Sfrac, gas);
+				z_flux(i, j, k).add((*static_cast<scene_object<nc> *>(z.other))(z.ri, z.rj, z.rk), (*this)(i, j, k), n, z.Sfrac, gas);
 			}
 			if (Sfrac > tol)
 				z_flux(i, j, k).add_reflect((*this)(i, j, k), false, n, Sfrac, gas);
@@ -95,7 +95,7 @@ void room<nc>::compute_outer_fluxes() {
 			z_flux(i, j, k).zero();
 			for (auto &z : side(2, 1, i, j, k)) {
 				Sfrac -= z.Sfrac;
-				z_flux(i, j, k).add((*this)(i, j, k-1), (*static_cast<room<nc> *>(z.other))(z.ri, z.rj, z.rk), n, z.Sfrac, gas);
+				z_flux(i, j, k).add((*this)(i, j, k-1), (*static_cast<scene_object<nc> *>(z.other))(z.ri, z.rj, z.rk), n, z.Sfrac, gas);
 			}
 			if (Sfrac > tol)
 				z_flux(i, j, k).add_reflect((*this)(i, j, k-1), true, n, Sfrac, gas);
@@ -103,7 +103,7 @@ void room<nc>::compute_outer_fluxes() {
 }
 
 template<int nc>
-double room<nc>::get_max_speed() const {
+double scene_object<nc>::get_max_dt() const {
 	double maxv = 0;
 	for (int i = 0; i <= nx; i++)
 		for (int j = 0; j < ny; j++)
@@ -126,11 +126,11 @@ double room<nc>::get_max_speed() const {
 				if (v > maxv)
 					maxv = v;
 			}
-	return maxv;
+	return get_min_h() / maxv;
 }
 
 template<int nc>
-void room<nc>::integrate(state<nc> &cell, const flux<nc> &left, const flux<nc> &right, double h, double dt) {
+void scene_object<nc>::integrate(state<nc> &cell, const flux<nc> &left, const flux<nc> &right, double h, double dt) {
 	for (int i = 0; i < nc; i++)
 		cell.rho[i] -= dt * (right.fdens[i] - left.fdens[i]) / h;
 	cell.rhou -= dt * (right.fmom - left.fmom) / h;
@@ -138,7 +138,7 @@ void room<nc>::integrate(state<nc> &cell, const flux<nc> &left, const flux<nc> &
 }
 
 template<int nc>
-void room<nc>::integrate(const double dt) {
+void scene_object<nc>::integrate(const double dt) {
 	for (int i = 0; i < nx; i++)
 		for (int j = 0; j < ny; j++)
 			for (int k = 0; k < nz; k++) {
