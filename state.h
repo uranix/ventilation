@@ -13,6 +13,11 @@ struct state {
 	vec rhou;
 	double rhoE;
 
+	state() : rhou(0), rhoE(0) {
+		for (int i = 0; i < nc; i++)
+			rho[i] = 0;
+	}
+
 	void from_rue(const std::vector<double> &r, const vec &u, double eps) {
 		double rs = 0;
 		for (int i = 0; i < nc; i++) {
@@ -49,15 +54,17 @@ template<int nc>
 struct gasinfo {
 	double Rspecific[nc]; /* J / kg / K */
 	double gamma[nc];
+	double visc[nc];
 
 	gasinfo() {
 	}
 
-	void set(int i, double molar_mass, double gamma_factor) {
+	void set(int i, double molar_mass, double gamma_factor, double viscosity) {
 		const double Runi = 8314.4;
 
 		Rspecific[i] = Runi / molar_mass;
 		gamma[i] = gamma_factor;
+		visc[i] = viscosity;
 	}
 
 	double density(const state<nc> &st) const {
@@ -95,7 +102,28 @@ struct gasinfo {
 		return Cv / st.density();
 	}
 
-	double tempertature(const state<nc> &st) const {
+	double viscosity(const state<nc> &st) const {
+		/* Herning-Zipprer */
+		double x[nc], xsum = 0;
+		for (int i = 0; i < nc; i++) {
+			x[i] = st.rho[i] * Rspecific[i];
+			xsum += x[i];
+		}
+		for (int i = 0; i < nc; i++) {
+			x[i] /= xsum;
+		}
+		double mumix = 0;
+		for (int i = 0; i < nc; i++) {
+			double denom = 0;
+			for (int j = 0; j < nc; j++)
+				denom += x[j] * sqrt(visc[i] / visc[j]);
+			mumix += x[i] * visc[i] / denom;
+		}
+		
+		return mumix;
+	}
+
+	double temperature(const state<nc> &st) const {
 		return st.specific_energy() / heat_capacity_volume(st);
 	}
 };
@@ -109,82 +137,4 @@ void state<nc>::from_ruT(const std::vector<double> &r, const vec &u, double T, c
 	from_rue(r, u, eps);
 }
 	
-struct avg_params {
-	double density;
-	vec velocity;
-	double specific_energy;
-	double pressure;
-
-	double solve(const avg_params &left, const avg_params &right, const vec &norm);
-};
-
-template<int nc>
-struct flux {
-	double fdens[nc];
-	vec fmom;
-	double fener;
-
-	double vmax;
-
-	flux() {
-		zero();
-	}
-
-	void zero() {
-		for (int i = 0; i < nc; i++)
-			fdens[i] = 0;
-		fmom = vec(0);
-		fener = 0;
-		vmax = 0;
-	}
-
-	void add(const state<nc> &left, const state<nc> &right, const vec &norm, const double Sfrac, const gasinfo<nc> &gas) {
-		avg_params la, ra, iface;
-
-		la.density = left.density();
-		la.velocity = left.velocity();
-		la.specific_energy = left.specific_energy();
-		la.pressure = gas.pressure(left);
-
-		ra.density = right.density();
-		ra.velocity = right.velocity();
-		ra.specific_energy = right.specific_energy();
-		ra.pressure = gas.pressure(right);
-
-		double _vmax = iface.solve(la, ra, norm);
-		if (_vmax > vmax)
-			vmax = _vmax;
-
-		double vn = iface.velocity.dot(norm);
-
-		double theta[nc];
-
-		if (vn > 0) {
-			for (int i = 0; i < nc; i++)
-				theta[i] = left.rho[i] / la.density;
-		} else {
-			for (int i = 0; i < nc; i++)
-				theta[i] = right.rho[i] / ra.density;
-		}
-
-		for (int i = 0; i < nc; i++)
-			fdens[i] += Sfrac * iface.density * theta[i] * vn;
-
-		fmom += Sfrac * (iface.density * vn * iface.velocity + iface.pressure * norm);
-		fener += Sfrac * vn * (
-				iface.density * (iface.specific_energy + .5 * iface.velocity.norm2()) + iface.pressure
-			);
-	}
-
-	void add_reflect(const state<nc> &inner, bool inner_is_left, const vec &norm, const double Sfrac, const gasinfo<nc> &gas) {
-		state<nc> outer = inner;
-		outer.rhou = inner.rhou - 2 * norm * dot(norm, inner.rhou);
-		if (inner_is_left)
-			add(inner, outer, norm, Sfrac, gas);
-		else
-			add(outer, inner, norm, Sfrac, gas);
-	}
-};
-
-
 #endif

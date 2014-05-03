@@ -60,8 +60,6 @@ void connect(box &a, box &b) {
 	double unit_length = std::min((a.ur - a.ll).norm(), (b.ur - b.ll).norm());
 	double tol = 1e-6;
 
-	std::cout << "Contact between " << a.id << " and " << b.id << std::endl;
-
 	tol *= unit_length;
 
 	bool found = false;
@@ -78,7 +76,9 @@ void connect(box &a, box &b) {
 			if (!check)
 				continue;
 
-			std::cout << "Found contact in d = " << d << " and s = " << s << std::endl;
+			char cdir = d == 0 ? 'X' : (d == 1 ? 'Y' : 'Z');
+			std::cout << "Found contact in " << cdir << " direction between " << (s ? a.id : b.id) <<
+				" -> " << (s ? b.id : a.id) << std::endl;
 
 			double Sa = a.h.x * a.h.y * a.h.z / vc(a.h, d);
 			double Sb = b.h.x * b.h.y * b.h.z / vc(b.h, d);

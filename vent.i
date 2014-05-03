@@ -6,24 +6,28 @@
 #include "room.h"
 #include "pipe.h"
 #include "atm.h"
+#include "fan.h"
 #include "solver.h"
 %}
+
+#define NC 2
 
 %include "std_string.i"
 %include "std_vector.i"
 
 %ignore operator <<(std::ostream &, const vec &);
 %ignore operator *(double , const vec &);
+%ignore vec::operator()(int) const;
 
 %include "vec.h"
 
 template<int nc>
 struct gasinfo {
     gasinfo();
-    %rename(set_component) set(int, double, double);
-    void set(int nc, double molar_mass, double gamma_factor);
+    %rename(set_component) set(int, double, double, double);
+    void set(int nc, double molar_mass, double gamma_factor, double viscosity);
 };
-%template(GasInfo) gasinfo<2>;
+%template(GasInfo) gasinfo<NC>;
 
 %nodefaultctor box;
 struct box {
@@ -36,41 +40,49 @@ struct state {
     void from_rue(const std::vector<double> &r, const vec &u, double eps);
     void from_ruT(const std::vector<double> &r, const vec &u, double T, const gasinfo<nc> &gas);
 };
-%template(State) state<2>;
+%template(State) state<NC>;
 
 %feature("director") functor;
 
 template<int nc>
 struct functor {
-    virtual void operator()(const vec &, state<nc> &) = 0;
+    virtual void operator()(const vec &, state<nc> &) const = 0;
     virtual ~functor();
 };
-%template(Functor) functor<2>;
+%template(Functor) functor<NC>;
 
 %nodefaultctor objects::scene_object;
 namespace objects {
     template<int nc>
     struct scene_object : public box {
-        void fill(functor<nc> &f);
+        void fill(const functor<nc> &f);
+        void fill_sources(const functor<nc> &f);
+        static void set_gas(const gasinfo<nc> &gas);
+        static void set_gravity(const vec &g);
     };
     template<int nc>
     struct room : public scene_object<nc> {
-        room(int nx, int ny, int nz, const vec &ll, const vec &ur, const std::string &id, const gasinfo<nc> &gas);
+        room(int nx, int ny, int nz, const vec &ll, const vec &ur, const std::string &id);
     };
     template<int nc>
     struct pipe : public scene_object<nc> {
-        pipe(int n, int dir, const vec &ll, const vec &ur, const std::string &id, const gasinfo<nc> &gas);
+        pipe(int n, int dir, const vec &ll, const vec &ur, const std::string &id);
+    };
+    template<int nc>
+    struct fan : public pipe<nc> {
+        fan(int n, int dir, const vec &ll, const vec &ur, const std::string &id, double Pmax, double Qmax);
     };
     template<int nc>
     struct atm : public scene_object<nc> {
-        atm(const vec &ll, const vec &ur, const std::string &id, const gasinfo<nc> &gas);
+        atm(const vec &ll, const vec &ur, const std::string &id);
     };
 }
-%template(SceneObject) objects::scene_object<2>;
-%template(Room) objects::room<2>;
-%template(Pipe) objects::pipe<2>;
-%template(Atm) objects::atm<2>;
-%template(Scene) std::vector<objects::scene_object<2> *>;
+%template(SceneObject) objects::scene_object<NC>;
+%template(Room) objects::room<NC>;
+%template(Pipe) objects::pipe<NC>;
+%template(Fan) objects::fan<NC>;
+%template(Atm) objects::atm<NC>;
+%template(Scene) std::vector<objects::scene_object<NC> *>;
 
 template<int nc>
 struct solver {
@@ -82,6 +94,6 @@ struct solver {
     double time() const;
     int step() const;
 };
-%template(Solver) solver<2>;
+%template(Solver) solver<NC>;
 
 void connect(box &, box &);

@@ -7,8 +7,8 @@ namespace objects {
 
 template<int nc>
 struct atm : public scene_object<nc> {
-	atm(const vec &ll, const vec &ur, const std::string &id, const gasinfo<nc> &gas)
-		: scene_object<nc>(1, 1, 1, ll, ur, id, gas)
+	atm(const vec &ll, const vec &ur, const std::string &id)
+		: scene_object<nc>(1, 1, 1, ll, ur, id)
 	{
 	}
 

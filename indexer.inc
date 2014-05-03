@@ -5,6 +5,13 @@
 		assert(k >= 0 && k < nz);
 		return _states[i + (j + k * ny) * nx];
 	}
+	
+	MAYBECONST state<nc> &source(int i, int j, int k) MAYBECONST {
+		assert(i >= 0 && i < nx);
+		assert(j >= 0 && j < ny);
+		assert(k >= 0 && k < nz);
+		return _sources[i + (j + k * ny) * nx];
+	}
 
 	MAYBECONST flux<nc> &x_flux(int i, int j, int k) MAYBECONST {
 		assert(i >= 0 && i <= nx);

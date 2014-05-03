@@ -58,12 +58,17 @@ void scene_object<nc>::save(const std::string &prefix, const int step) const {
 	for (int k = 0; k < nz; k++)
 		for (int j = 0; j < ny; j++)
 			for (int i = 0; i < nx; i++)
-				put<float>(f, gas.pressure((*this)(i, j, k)));
+				put<float>(f, gas().pressure((*this)(i, j, k)));
+	f << "\nSCALARS T float\nLOOKUP_TABLE default\n";
+	for (int k = 0; k < nz; k++)
+		for (int j = 0; j < ny; j++)
+			for (int i = 0; i < nx; i++)
+				put<float>(f, gas().temperature((*this)(i, j, k)));
 	f << "\nSCALARS eps float\nLOOKUP_TABLE default\n";
 	for (int k = 0; k < nz; k++)
 		for (int j = 0; j < ny; j++)
 			for (int i = 0; i < nx; i++)
-				put<float>(f, gas.specific_energy((*this)(i, j, k)));
+				put<float>(f, gas().specific_energy((*this)(i, j, k)));
 	f << std::endl;
 	f.close();
 }

@@ -35,6 +35,8 @@ public:
 	void integrate(const double dt) {
 		for (auto p : scene)
 			p->integrate(dt);
+		for (auto p : scene)
+			p->integrate_rhs(dt);
 
 		t += dt;
 		_step++;

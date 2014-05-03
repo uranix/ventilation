@@ -1,50 +1,72 @@
+#include <iostream>
+
 #include "room.h"
 #include "pipe.h"
-#include "solver.h"
+#include "fan.h"
+#include "atm.h"
 
-#include <iostream>
+#include "solver.h"
 
 #include <fenv.h>
 
-int main() {
+struct AtmValues : public functor<2> {
+	const gasinfo<2> gas;
+	AtmValues(const gasinfo<2> &gas) : gas(gas) { }
+	void operator()(const vec &p, state<2> &st) const {
+		std::vector<double> r = {1, 0};
+		st.from_ruT(r, vec(0, 0, 0), 300, gas);
+	}
+};
 
+struct RoomValues : public functor<2> {
+	const gasinfo<2> gas;
+	RoomValues(const gasinfo<2> &gas) : gas(gas) { }
+	void operator()(const vec &p, state<2> &st) const {
+		std::vector<double> r = {0.81875, 0};
+		st.from_ruT(r, vec(0, 0, 0), 300, gas);
+	}
+};
+
+int main() {
 	feenableexcept(FE_INVALID | FE_DIVBYZERO | FE_OVERFLOW);
 
 	gasinfo<2> gas;
 
-	gas.set(0, 29, 1.4); /* air */
-	gas.set(1, 16, 1.33); /* methane */
+	gas.set(0, 29, 1.4, 1.78e-5); /* air */
+	gas.set(1, 16, 1.33, 1e-5); /* methane */
 
-	room<2> c(20, 20, 20, vec(0, 0, 0), vec(.3, .3, .3), "room", gas);
-	pipe<2> c3(20, 0, vec(-1, .2, 0), vec(0, .26, .06), "pipe2", gas);
+	objects::scene_object<2>::set_gas(gas);
 
-	double r1[2] = {1.20, 0};
-	double r2[2] = {1.00, 0.03};
+	objects::room<2> room(20, 20, 20, vec(0, 0, 0), vec(1, 1, 1), "room");
+	objects::fan<2> fan(10, 0, vec(-1, .45, .45), vec(0, .55, .55), "fan", 50000, 10);
+	objects::pipe<2> pipe2(10, 1, vec(.9, 1, 0), vec(1, 1.5, .1), "pipe2");
+	objects::atm<2> atm(vec(.8, 1.5, -.1), vec(1.1, 1.8, .2), "atm");
+	objects::atm<2> atm2(vec(-1.2, .4, .4), vec(-1, .6, .6), "atm2");
 
-	for (int i = 0; i < c.nx; i++)
-		for (int j = 0; j < c.ny; j++)
-			for (int k = 0; k < c.nz; k++) {
-				c(i, j, k).from_ruT(r2, vec(0, 0, 0), 300, gas);
-			}
-	
-	for (int i = 0; i < c3.nx; i++)
-		for (int j = 0; j < c3.ny; j++)
-			for (int k = 0; k < c3.nz; k++) {
-				c3(i, j, k).from_ruT(r2, vec(0, 0, 0), 300, gas);
-			}
-
-	connect(c, c3);
-
-	double tmax = 0.1;
-	double t = 0;
-	
-	int step = 0;
+	room.fill(RoomValues(gas));
+	pipe2.fill(AtmValues(gas));
+	atm.fill(AtmValues(gas));
+	atm2.fill(AtmValues(gas));
+	fan.fill(AtmValues(gas));
 
 	std::vector<objects::scene_object<2> *> scene;
-	scene.push_back(&c);
-	scene.push_back(&c3);
+	scene.push_back(&fan);
+	scene.push_back(&room);
+	scene.push_back(&pipe2);
+	scene.push_back(&atm);
+	scene.push_back(&atm2);
 
 	solver<2> solver(scene, 0.25);
+
+	while (solver.time() < 10) {
+		solver.compute_fluxes();
+		double dt = solver.estimate_timestep();
+		solver.integrate(dt);
+		if ((solver.step() % 50) == 0) {
+			std::cout << "t = " << solver.time() << ", dt = " << dt << ", step = " << solver.step() << std::endl;
+			solver.save("vtks/");
+		}
+	}
 
 	return 0;
 }
