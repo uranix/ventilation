@@ -16,6 +16,7 @@ struct atm : public scene_object<nc> {
 	virtual void compute_outer_fluxes() { }
 	virtual double get_max_dt() const { return 1e20; }
 	virtual void integrate(const double dt) { }
+	virtual void integrate_rhs(const double dt) { }
 };
 
 }

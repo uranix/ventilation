@@ -133,7 +133,13 @@ void pipe<nc>::integrate(const double dt) {
 
 template<int nc>
 void pipe<nc>::integrate_rhs(state<nc> &cell, const state<nc> &source, const double dt) {
-	scene_object<nc>::integrate_rhs(cell, source, dt);
+	cell.rhoE += dt * this->g().dot(cell.rhou);
+	cell.rhou(dir) += dt * cell.density() * this->g()(dir);
+
+	for (int i = 0; i < nc; i++)
+		cell.rho[i] += dt * source.rho[i];
+	cell.rhou += dt * source.rhou;
+	cell.rhoE += dt * source.rhoE;
 
 	double Dg = 4 * surface / perimeter;
 	double Re = 1 + cell.rhou.norm() * Dg / this->gas().viscosity(cell);

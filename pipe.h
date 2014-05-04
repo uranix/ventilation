@@ -5,13 +5,25 @@
 
 namespace objects {
 
+inline int cdir_to_dir(char cdir) {
+	if (cdir == 'x' || cdir == 'X')
+		return 0;
+	if (cdir == 'y' || cdir == 'Y')
+		return 1;
+	return 2;
+}
+
 template<int nc>
 struct pipe : public scene_object<nc> {
 	int dir;
 	double surface, perimeter;
 
-	pipe(int n, int dir, const vec &ll, const vec &ur, const std::string &id)
-		: scene_object<nc>(dir == 0 ? n : 1, dir == 1 ? n : 1, dir == 2 ? n : 1, ll, ur, id), dir(dir)
+	pipe(int n, char cdir, const vec &ll, const vec &ur, const std::string &id)
+		: scene_object<nc>(
+			cdir_to_dir(cdir) == 0 ? n : 1,
+			cdir_to_dir(cdir) == 1 ? n : 1,
+			cdir_to_dir(cdir) == 2 ? n : 1, ll, ur, id), 
+		dir(cdir_to_dir(cdir))
 	{
 		for (int d = 0; d < 3; d++)
 			for (int s = 0; s < 2; s++)

@@ -10,8 +10,8 @@ gas.set_component(1, 16, 1.33, 1e-5)
 Room.set_gas(gas);
 
 room = Room(20, 20, 20, vec(0, 0, 0), vec(1, 1, 1), "room");
-fan = Fan(10, 0, vec(-1, .45, .45), vec(0, .55, .55), "fan", 50000, 10);
-pipe2 = Pipe(10, 1, vec(.9, 1, 0), vec(1, 1.5, .1), "pipe2");
+fan = Fan(10, 'x', vec(-1, .45, .45), vec(0, .55, .55), "fan", 50000, 10);
+pipe2 = Pipe(10, 'Y', vec(.9, 1, 0), vec(1, 1.5, .1), "pipe2");
 atm = Atm(vec(.8, 1.5, -.1), vec(1.1, 1.8, .2), "atm");
 atm2 = Atm(vec(-1.2, .4, .4), vec(-1, .6, .6), "atm2");
 
