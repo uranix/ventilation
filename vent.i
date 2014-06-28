@@ -66,11 +66,11 @@ namespace objects {
     };
     template<int nc>
     struct pipe : public scene_object<nc> {
-        pipe(int n, char dir, const vec &ll, const vec &ur, const std::string &id);
+        pipe(int n, char dir, const vec &ll, const vec &ur, const std::string &id, double friction_coeff = 0);
     };
     template<int nc>
     struct fan : public pipe<nc> {
-        fan(int n, char dir, const vec &ll, const vec &ur, const std::string &id, double Pmax, double Qmax);
+        fan(int n, char dir, const vec &ll, const vec &ur, const std::string &id, double Pmax, double Qmax, double friction_coeff = 0);
     };
     template<int nc>
     struct atm : public scene_object<nc> {

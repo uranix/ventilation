@@ -17,13 +17,14 @@ template<int nc>
 struct pipe : public scene_object<nc> {
 	int dir;
 	double surface, perimeter;
+	double friction_coeff;
 
-	pipe(int n, char cdir, const vec &ll, const vec &ur, const std::string &id)
+	pipe(int n, char cdir, const vec &ll, const vec &ur, const std::string &id, double friction_coeff = 0)
 		: scene_object<nc>(
 			cdir_to_dir(cdir) == 0 ? n : 1,
 			cdir_to_dir(cdir) == 1 ? n : 1,
 			cdir_to_dir(cdir) == 2 ? n : 1, ll, ur, id), 
-		dir(cdir_to_dir(cdir))
+		dir(cdir_to_dir(cdir)), friction_coeff(friction_coeff)
 	{
 		for (int d = 0; d < 3; d++)
 			for (int s = 0; s < 2; s++)
@@ -45,7 +46,7 @@ struct pipe : public scene_object<nc> {
 	virtual void integrate_rhs(state<nc> &cell, const state<nc> &source, const double dt);
 };
 
-#include "pipe.tpp"
+#include "../src/pipe.tpp"
 
 }
 

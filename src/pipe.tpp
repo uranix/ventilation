@@ -145,5 +145,7 @@ void pipe<nc>::integrate_rhs(state<nc> &cell, const state<nc> &source, const dou
 	double Re = 1 + cell.rhou.norm() * Dg / this->gas().viscosity(cell);
 	double cf = 0.0032 + 0.221 / pow(Re, 0.237);
 
+	cf *= friction_coeff;
+
 	cell.rhou(dir) -= dt * cell.density() * cell.velocity().norm2() * cf / 8;
 }

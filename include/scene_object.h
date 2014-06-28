@@ -91,8 +91,8 @@ struct scene_object : public box {
 	void save(const std::string &prefix, const int step) const;
 };
 
-#include "scene_object.tpp"
-#include "vtk.tpp"
+#include "../src/scene_object.tpp"
+#include "../src/vtk.tpp"
 
 }
 

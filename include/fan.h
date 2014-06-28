@@ -10,8 +10,10 @@ template<int nc>
 struct fan : public pipe<nc> {
 	double Pmax, Qmax;
 	vec gradPmax;
-	fan(int n, char cdir, const vec &ll, const vec &ur, const std::string &id, double Pmax, double Qmax)
-		: pipe<nc>(n, cdir, ll, ur, id), Pmax(Pmax), Qmax(Qmax)
+	fan(int n, char cdir, const vec &ll, const vec &ur, const std::string &id, 
+		double Pmax, double Qmax, double friction_coeff = 0
+	) 
+		: pipe<nc>(n, cdir, ll, ur, id, friction_coeff), Pmax(Pmax), Qmax(Qmax)
 	{
 		vec P;
 		P(this->dir) = Pmax;
