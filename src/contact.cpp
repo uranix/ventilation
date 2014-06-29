@@ -11,8 +11,8 @@ double vc(const vec &v, int i) {
     return v.z;
 }
 
-double intersect_rect(int d, const vec &all, const vec &aur, 
-    const vec &bll, const vec &bur, double tol) 
+double intersect_rect(int d, const vec &all, const vec &aur,
+    const vec &bll, const vec &bur, double tol)
 {
     vec ins;
 
@@ -46,13 +46,13 @@ double intersect_rect(int d, const vec &all, const vec &aur,
 double try_side(int d, int s, const box &a, const box &b, double tol) {
     if (a.closed[d][s] || b.closed[d][1-s])
         return -1;
-    
+
     double ax = (s == 0) ? vc(a.ll, d) : vc(a.ur, d);
     double bx = (s == 1) ? vc(b.ll, d) : vc(b.ur, d);
 
     if (fabs(ax - bx) > tol)
         return -1;
-    
+
     return intersect_rect(d, a.ll, a.ur, b.ll, b.ur, tol);
 }
 
@@ -89,7 +89,7 @@ void connect(box &a, box &b) {
             int i1hi = (d != 0) ? a.nx : (s * (a.nx - 1) + 1);
             int j1hi = (d != 1) ? a.ny : (s * (a.ny - 1) + 1);
             int k1hi = (d != 2) ? a.nz : (s * (a.nz - 1) + 1);
-            
+
             int i2lo = (d != 0) ? 0 : ((1 - s) * (b.nx - 1));
             int j2lo = (d != 1) ? 0 : ((1 - s) * (b.ny - 1));
             int k2lo = (d != 2) ? 0 : ((1 - s) * (b.nz - 1));

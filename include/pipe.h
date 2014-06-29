@@ -23,7 +23,7 @@ struct pipe : public scene_object<nc> {
         : scene_object<nc>(
             cdir_to_dir(cdir) == 0 ? n : 1,
             cdir_to_dir(cdir) == 1 ? n : 1,
-            cdir_to_dir(cdir) == 2 ? n : 1, ll, ur, id), 
+            cdir_to_dir(cdir) == 2 ? n : 1, ll, ur, id),
         dir(cdir_to_dir(cdir)), friction_coeff(friction_coeff)
     {
         for (int d = 0; d < 3; d++)

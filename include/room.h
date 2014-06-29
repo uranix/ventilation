@@ -11,7 +11,7 @@ struct room : public scene_object<nc> {
         : scene_object<nc>(nx, ny, nz, ll, ur, id)
     {
     }
-    
+
     virtual ~room() {
     }
 };

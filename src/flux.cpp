@@ -11,7 +11,7 @@ double avg_params::solve(const avg_params &left, const avg_params &right, const 
     v1[0] = left.velocity.x;
     v1[1] = left.velocity.y;
     v1[2] = left.velocity.z;
-    
+
     v2[0] = right.velocity.x;
     v2[1] = right.velocity.y;
     v2[2] = right.velocity.z;

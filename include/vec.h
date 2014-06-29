@@ -15,8 +15,8 @@ struct vec {
     vec(const vec &r) : x(r.x), y(r.y), z(r.z) { }
     /** Construct vector from components */
     vec(double x, double y, double z) : x(x), y(y), z(z) { }
-    
-    double &operator()(int d) { 
+
+    double &operator()(int d) {
         if (d == 0)
             return x;
         if (d == 1)

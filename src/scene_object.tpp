@@ -33,7 +33,7 @@ void scene_object<nc>::compute_outer_fluxes() {
             vec n(1, 0, 0);
             double Sfrac = 1;
             int i = 0;
-            
+
             x_flux(i, j, k).zero();
             for (auto &z : side(0, 0, i, j, k)) {
                 Sfrac -= z.Sfrac;
@@ -57,7 +57,7 @@ void scene_object<nc>::compute_outer_fluxes() {
             vec n(0, 1, 0);
             double Sfrac = 1;
             int j = 0;
-            
+
             y_flux(i, j, k).zero();
             for (auto &z : side(1, 0, i, j, k)) {
                 Sfrac -= z.Sfrac;
@@ -81,7 +81,7 @@ void scene_object<nc>::compute_outer_fluxes() {
             vec n(0, 0, 1);
             double Sfrac = 1;
             int k = 0;
-            
+
             z_flux(i, j, k).zero();
             for (auto &z : side(2, 0, i, j, k)) {
                 Sfrac -= z.Sfrac;

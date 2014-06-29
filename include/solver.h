@@ -15,7 +15,7 @@ class solver {
     gasinfo<nc> _gas;
     vec _g;
 public:
-    solver(const std::vector<objects::scene_object<nc> *> &scene, const double C) : scene(scene), C(C) 
+    solver(const std::vector<objects::scene_object<nc> *> &scene, const double C) : scene(scene), C(C)
     {
         for (auto p : scene)
             p->set_solver(this);

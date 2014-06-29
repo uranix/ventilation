@@ -32,7 +32,7 @@ struct flux {
         vmax = 0;
     }
 
-    void add(const state<nc> &left, const state<nc> &right, const vec &norm, const double Sfrac, const gasinfo<nc> &gas) {
+    void add(const state<nc> &left, const state<nc> &right, const vec &norm, const double Sfrac, const gasinfo<nc> &gas, const vec &g) {
         avg_params la, ra, iface;
 
         la.density = left.density();
@@ -70,13 +70,13 @@ struct flux {
             );
     }
 
-    void add_reflect(const state<nc> &inner, bool inner_is_left, const vec &norm, const double Sfrac, const gasinfo<nc> &gas) {
+    void add_reflect(const state<nc> &inner, bool inner_is_left, const vec &norm, const double Sfrac, const gasinfo<nc> &gas, const vec &g) {
         state<nc> outer = inner;
         outer.rhou = inner.rhou - 2 * norm * dot(norm, inner.rhou);
         if (inner_is_left)
-            add(inner, outer, norm, Sfrac, gas, true);
+            add(inner, outer, norm, Sfrac, gas, g);
         else
-            add(outer, inner, norm, Sfrac, gas, true);
+            add(outer, inner, norm, Sfrac, gas, g);
     }
 };
 

@@ -47,7 +47,7 @@ struct scene_object : public box {
     const gasinfo<nc> &gas() const {
         return solver->gas();
     }
-    
+
     virtual ~scene_object() {
         delete[] _states;
         delete[] _sources;
@@ -70,7 +70,7 @@ struct scene_object : public box {
                 for (int k = 0; k < nz; k++)
                     f(center(i, j, k), this->source(i, j, k));
     }
-    
+
     #define MAYBECONST
     #include "indexer.inc"
     #undef MAYBECONST
@@ -92,7 +92,7 @@ struct scene_object : public box {
     void put(std::fstream &f, T value) const;
 
     void save(const std::string &prefix, const int step) const;
-    
+
     void debug_avg() const;
 };
 

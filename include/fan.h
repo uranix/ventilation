@@ -10,9 +10,9 @@ template<int nc>
 struct fan : public pipe<nc> {
     double Pmax, Qmax;
     vec gradPmax;
-    fan(int n, char cdir, const vec &ll, const vec &ur, const std::string &id, 
+    fan(int n, char cdir, const vec &ll, const vec &ur, const std::string &id,
         double Pmax, double Qmax, double friction_coeff = 0
-    ) 
+    )
         : pipe<nc>(n, cdir, ll, ur, id, friction_coeff), Pmax(Pmax), Qmax(Qmax)
     {
         vec P;
@@ -20,7 +20,7 @@ struct fan : public pipe<nc> {
         gradPmax = P / (ur - ll);
     }
     ~fan() { }
-    
+
     virtual void integrate_rhs(state<nc> &cell, const state<nc> &source, double dt) {
         pipe<nc>::integrate_rhs(cell, source, dt);
 

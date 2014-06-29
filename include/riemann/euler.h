@@ -49,7 +49,7 @@ class euler_1d {
         real val, der;
         APICALL multivalue(real v, real d) : val(v), der(d) { }
     };
-    
+
     template<int n>
     APICALL multivalue f(real P) const {
         real pi = P / pressure[n];
@@ -64,7 +64,7 @@ class euler_1d {
             real b3 = beta * b2;
             return multivalue(
                 (P - pressure[n]) / density[n] / sound[n] / beta,
-                ((gamma[n] + 1) * pi + 3 * gamma[n] - 1) / 
+                ((gamma[n] + 1) * pi + 3 * gamma[n] - 1) /
                     (4 * density[n] * sound[n] * gamma[n] * b3)
             );
         } else {
@@ -81,7 +81,7 @@ class euler_1d {
         multivalue v2(f<1>(P));
 
         return multivalue(
-            v1.val + v2.val - velocity[0] + velocity[1], 
+            v1.val + v2.val - velocity[0] + velocity[1],
             v1.der + v2.der);
     }
 
@@ -112,13 +112,13 @@ class euler_1d {
 
         return pow((u1 - u2 + a1 + a2) / (A + B), ichiavg);
     }
-    
+
     APICALL real approximate_pressure() const {
         real P0 = acoustic_approximation();
 
         if (P0 <= 0)
             P0 = rare_gas_approximation();
-        
+
         while (F(P0).val > 0)
             P0 /= 2;
 
@@ -126,7 +126,7 @@ class euler_1d {
     } /* }}} */
 
     APICALL bool solve_vacuum_case() {
-        if (F(0).val < 0) 
+        if (F(0).val < 0)
             return false;
 
         R1 = R2 = E1 = E2 = P = 0;
@@ -169,8 +169,8 @@ class euler_1d {
         if (converged)
             __riemann_debug_stream << "Converged in " << iters << " Newton iterations\n";
         else
-            __riemann_debug_stream << "Did not converge, done " << iters 
-                << " Newton iterations, but got only " << (dp / max(P, pmax)) 
+            __riemann_debug_stream << "Did not converge, done " << iters
+                << " Newton iterations, but got only " << (dp / max(P, pmax))
                 << " relative error when " << eps << " requested\n";
 
         return converged;
@@ -224,7 +224,7 @@ class euler_1d {
 
         return converged;
     }
-    
+
     APICALL static inline void safe_put(real A[], int i, real v) {
         if (A)
             A[i] = v;
@@ -248,9 +248,9 @@ private:
     bool solved_ok;
 public:
 
-    /** Solve problem with for specific values. 
-     * \param eps Relative error tolerance 
-     * \param max_iters Maximum number of Newton iteration to be performed. 
+    /** Solve problem with for specific values.
+     * \param eps Relative error tolerance
+     * \param max_iters Maximum number of Newton iteration to be performed.
      * If this number is exceeded iterations are stopped and solution is considered
      * to be not good(), i.e. have error > eps.
      */
@@ -288,23 +288,23 @@ public:
         return solved_ok;
     }
 
-    /** Returns left wave type - shock or rarification wave. 
+    /** Returns left wave type - shock or rarification wave.
      *
      * Special value ::VACUUM is used for case with vacuum between waves */
     APICALL WaveType left_wave_type() const {
         return lwave;
     }
 
-    /** Returns right wave type - shock or rarification wave. 
+    /** Returns right wave type - shock or rarification wave.
      *
      * Special value ::VACUUM is used for case with vacuum between waves */
     APICALL WaveType right_wave_type() const {
         return rwave;
     }
-    
-    /** Return waves speed 
+
+    /** Return waves speed
      *
-     * Each rarification wave is represented as pair (Wn, Wns), 
+     * Each rarification wave is represented as pair (Wn, Wns),
      * each shock wave has Wn = Wns. Contact discontinuity has velocity U */
     APICALL const WaveFan get_wave_fan() const {
         return WaveFan(W1, W1s, U, W2s, W2);
@@ -318,7 +318,7 @@ public:
     }
 
     /** Get solution as arrays of density, velocity, specific energy and pressure
-    * 
+    *
     * \param N Number of elements in each array
     * \param xi Array with x/t values (x = 0 is the initial discontinuity).
     * \param dens Optional output array used for density values
@@ -327,8 +327,8 @@ public:
     * \param press Optional output array used for pressure values
     * \param incvel Velocity array storage increment. Intended for use in multidimensional solvers
     **/
-    APICALL void get(const int N, const real xi[], real dens[], real vel[], real specen[], real press[], 
-        const int incvel = 1) const 
+    APICALL void get(const int N, const real xi[], real dens[], real vel[], real specen[], real press[],
+        const int incvel = 1) const
     {
         for (int i = 0, iv = 0; i < N; i++, iv += incvel) {
             bool leftmost = xi[i] <= W1;
@@ -449,9 +449,9 @@ public:
     APICALL const euler_1d<real> &get_1d_solver() const {
         return onedim_solver;
     }
-    
-    APICALL void get(const int N, const real xi[], real dens[], vec vel[], 
-        real specen[], real press[]) const 
+
+    APICALL void get(const int N, const real xi[], real dens[], vec vel[],
+        real specen[], real press[]) const
     {
         real U = onedim_solver.get_wave_fan().U;
         onedim_solver.get(N, xi, dens, reinterpret_cast<real *>(vel), specen, press, sizeof(vec) / sizeof(real));

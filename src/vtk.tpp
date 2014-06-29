@@ -46,7 +46,7 @@ void scene_object<nc>::save(const std::string &prefix, const int step) const {
                     put<float>(f, (*this)(i, j, k).rho[ic]);
     }
     f << "\nVECTORS v float\n";
-    for (int k = 0; k < nz; k++) 
+    for (int k = 0; k < nz; k++)
         for (int j = 0; j < ny; j++)
             for (int i = 0; i < nx; i++) {
                 const vec &v = (*this)(i, j, k).velocity();

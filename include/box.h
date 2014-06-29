@@ -28,7 +28,7 @@ struct box {
     vec h;
 
     bool closed[3][2];
-    
+
     const std::string id;
 
     box(int nx, int ny, int nz, const vec &ll, const vec &ur, const std::string &id)
@@ -43,7 +43,7 @@ struct box {
         for (int d = 0; d < 3; d++)
             for (int s = 0; s < 2; s++)
                 closed[d][s] = false;
-        
+
         for (int s = 0; s < 2; s++) {
             _side[0][s] = new ContactList[ny * nz];
             _side[1][s] = new ContactList[nx * nz];

@@ -7,8 +7,6 @@ gas = GasInfo()
 gas.set_component(0, 29, 1.40, 1.78e-5)
 gas.set_component(1, 16, 1.33, 1e-5)
 
-Room.set_gas(gas);
-
 room = Room(20, 20, 20, vec(0, 0, 0), vec(1, 1, 1), "room");
 fan = Fan(10, 'x', vec(-1, .45, .45), vec(0, .55, .55), "fan", 50000, 10);
 pipe2 = Pipe(10, 'Y', vec(.9, 1, 0), vec(1, 1.5, .1), "pipe2");
@@ -32,13 +30,15 @@ pipe2.fill(PipeValues());
 atm.fill (AtmValues());
 atm2.fill(AtmValues());
 fan.fill(PipeValues());
-           
+
 connect(fan, atm2);
 connect(fan, room);
 connect(pipe2, room);
 connect(pipe2, atm);
 
 solver = Solver([fan, room, pipe2, atm, atm2], .25);
+solver.set_gas(gas);
+solver.set_gravity(vec(0, 0, 0));
 
 while solver.time() < 10:
     solver.compute_fluxes()

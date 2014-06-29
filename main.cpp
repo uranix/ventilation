@@ -59,9 +59,6 @@ int main() {
     gas.set(0, 29, 1.40, 1.78e-5);
     gas.set(1, 16, 1.33, 1e-5);
 
-    Object::set_gas(gas);
-    Object::set_gravity(vec(0, 0, -9.81));
-
     Atm  gv1   (vec(-402, -2, 200), vec(-398, 2, 204), "gv1");
     Pipe pipe2 (50, 'Z', vec(-401.5, -1.5, 1.5), vec(-398.5, 1.5, 200), "pipe2");
     Room corn3 (1, 1, 1, vec(-401.5, -1.5, -1.5), vec(-398.5, 1.5, 1.5), "corn3");
@@ -98,11 +95,13 @@ int main() {
     connect(pipe10, atm11);
 
     std::vector<Object *> scene = {
-        &gv1, &pipe2, &corn3, &pipe4, &bra5, 
-        &pipe6, &bra7, &pipe8, &corn9, &pipe10, 
+        &gv1, &pipe2, &corn3, &pipe4, &bra5,
+        &pipe6, &bra7, &pipe8, &corn9, &pipe10,
         &atm11};
 
     Solver solver(scene, .25);
+    solver.set_gas(gas);
+    solver.set_gravity(vec(0, 0, -9.81));
 
     while (solver.time() < 1000) {
         solver.compute_fluxes();

@@ -38,7 +38,7 @@ struct state {
             sum += rho[i];
         return sum;
     }
-    
+
     vec velocity() const {
         double r = density();
         return rhou / r;
@@ -119,7 +119,7 @@ struct gasinfo {
                 denom += x[j] * sqrt(visc[i] / visc[j]);
             mumix += x[i] * visc[i] / denom;
         }
-        
+
         return mumix;
     }
 
@@ -127,7 +127,7 @@ struct gasinfo {
         return st.specific_energy() / heat_capacity_volume(st);
     }
 };
-    
+
 template<int nc>
 void state<nc>::from_ruT(const std::vector<double> &r, const vec &u, double T, const gasinfo<nc> &gas) {
     from_rue(r, u, 0);
@@ -136,5 +136,5 @@ void state<nc>::from_ruT(const std::vector<double> &r, const vec &u, double T, c
 
     from_rue(r, u, eps);
 }
-    
+
 #endif
