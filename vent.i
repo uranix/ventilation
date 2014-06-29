@@ -57,8 +57,7 @@ namespace objects {
     struct scene_object : public box {
         void fill(const functor<nc> &f);
         void fill_sources(const functor<nc> &f);
-        static void set_gas(const gasinfo<nc> &gas);
-        static void set_gravity(const vec &g);
+        void debug_avg();
     };
     template<int nc>
     struct room : public scene_object<nc> {
@@ -86,11 +85,13 @@ namespace objects {
 
 template<int nc>
 struct solver {
-	solver(const std::vector<objects::scene_object<nc> *> &scene, const double C);
-	void compute_fluxes();
-	double estimate_timestep();
-	void integrate(const double dt);
-	void save(const std::string &);
+    solver(const std::vector<objects::scene_object<nc> *> &scene, const double C);
+    void set_gas(const gasinfo<nc> &gas);
+    void set_gravity(const vec &g);
+    void compute_fluxes();
+    double estimate_timestep();
+    void integrate(const double dt);
+    void save(const std::string &);
     double time() const;
     int step() const;
 };
