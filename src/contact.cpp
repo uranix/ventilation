@@ -13,14 +13,14 @@ double intersect_rect(dir::Direction d, const vec &all, const vec &aur,
     ins.z = std::min(aur.z, bur.z) - std::max(all.z, bll.z);
 
     double S = 1;
-	for (auto dd : dir::DIRECTIONS) {
-		if (dd == d)
-			continue;
+    for (auto dd : dir::DIRECTIONS) {
+        if (dd == d)
+            continue;
         if (ins(dd) < tol)
             return -1;
         else
             S *= ins(dd);
-	}
+    }
     return S;
 }
 
@@ -45,7 +45,7 @@ void connect(box &a, box &b) {
 
     bool found = false;
 
-	for (auto d : dir::DIRECTIONS)
+    for (auto d : dir::DIRECTIONS)
         for (int s = 0; s < 2; s++) {
             bool check = try_side(d, s, a, b, tol) > 0;
             if (check && found) {
@@ -58,21 +58,21 @@ void connect(box &a, box &b) {
                 continue;
 
             std::cout << "Found contact in " << dir::to_char(d)
-				<< " direction between " << (s ? a.id : b.id) << " -> " << (s ? b.id : a.id) << std::endl;
+                << " direction between " << (s ? a.id : b.id) << " -> " << (s ? b.id : a.id) << std::endl;
 
             double Sa = a.h.x * a.h.y * a.h.z / a.h(d);
             double Sb = b.h.x * b.h.y * b.h.z / b.h(d);
 
-			int alo[3];
-			int ahi[3];
-			int blo[3];
-			int bhi[3];
-			for (auto dd : dir::DIRECTIONS) {
-				alo[dd] = (d != dd) ? 0 : (s * (a.n(dd) - 1));
-				ahi[dd] = (d != dd) ? a.n(dd) : (s * (a.n(dd) - 1) + 1);
-				blo[dd] = (d != dd) ? 0 : ((1 - s) * (b.n(dd) - 1));
-				bhi[dd] = (d != dd) ? b.n(dd) : ((1 - s) * (b.n(dd) - 1) + 1);
-			}
+            int alo[3];
+            int ahi[3];
+            int blo[3];
+            int bhi[3];
+            for (auto dd : dir::DIRECTIONS) {
+                alo[dd] = (d != dd) ? 0 : (s * (a.n(dd) - 1));
+                ahi[dd] = (d != dd) ? a.n(dd) : (s * (a.n(dd) - 1) + 1);
+                blo[dd] = (d != dd) ? 0 : ((1 - s) * (b.n(dd) - 1));
+                bhi[dd] = (d != dd) ? b.n(dd) : ((1 - s) * (b.n(dd) - 1) + 1);
+            }
 
 #define LOOP(x, dir) for (int x ## dir = x ## lo[dir]; x ## dir < x ## hi[dir]; x ## dir ++)
 

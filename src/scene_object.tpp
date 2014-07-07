@@ -38,7 +38,7 @@ void scene_object<nc>::compute_outer_fluxes() {
             for (auto &z : side(0, 0, i, j, k)) {
                 Sfrac -= z.Sfrac;
                 x_flux(i, j, k).add((*static_cast<scene_object<nc> *>(z.other))(z.ri, z.rj, z.rk),
-						(*this)(i, j, k), n, z.Sfrac, gas(), g() * h.x);
+                        (*this)(i, j, k), n, z.Sfrac, gas(), g() * h.x);
             }
             if (Sfrac > tol)
                 x_flux(i, j, k).add_reflect((*this)(i, j, k), false, n, Sfrac, gas(), g() * h.x);
@@ -49,7 +49,7 @@ void scene_object<nc>::compute_outer_fluxes() {
             for (auto &z : side(0, 1, i, j, k)) {
                 Sfrac -= z.Sfrac;
                 x_flux(i, j, k).add((*this)(i-1, j, k),
-						(*static_cast<scene_object<nc> *>(z.other))(z.ri, z.rj, z.rk), n, z.Sfrac, gas(), g() * h.x);
+                        (*static_cast<scene_object<nc> *>(z.other))(z.ri, z.rj, z.rk), n, z.Sfrac, gas(), g() * h.x);
             }
             if (Sfrac > tol)
                 x_flux(i, j, k).add_reflect((*this)(i-1, j, k), true, n, Sfrac, gas(), g() * h.x);
@@ -64,7 +64,7 @@ void scene_object<nc>::compute_outer_fluxes() {
             for (auto &z : side(1, 0, i, j, k)) {
                 Sfrac -= z.Sfrac;
                 y_flux(i, j, k).add((*static_cast<scene_object<nc> *>(z.other))(z.ri, z.rj, z.rk),
-						(*this)(i, j, k), n, z.Sfrac, gas(), g() * h.y);
+                        (*this)(i, j, k), n, z.Sfrac, gas(), g() * h.y);
             }
             if (Sfrac > tol)
                 y_flux(i, j, k).add_reflect((*this)(i, j, k), false, n, Sfrac, gas(), g() * h.y);
@@ -75,7 +75,7 @@ void scene_object<nc>::compute_outer_fluxes() {
             for (auto &z : side(1, 1, i, j, k)) {
                 Sfrac -= z.Sfrac;
                 y_flux(i, j, k).add((*this)(i, j-1, k),
-						(*static_cast<scene_object<nc> *>(z.other))(z.ri, z.rj, z.rk), n, z.Sfrac, gas(), g() * h.y);
+                        (*static_cast<scene_object<nc> *>(z.other))(z.ri, z.rj, z.rk), n, z.Sfrac, gas(), g() * h.y);
             }
             if (Sfrac > tol)
                 y_flux(i, j, k).add_reflect((*this)(i, j-1, k), true, n, Sfrac, gas(), g() * h.y);
@@ -90,7 +90,7 @@ void scene_object<nc>::compute_outer_fluxes() {
             for (auto &z : side(2, 0, i, j, k)) {
                 Sfrac -= z.Sfrac;
                 z_flux(i, j, k).add((*static_cast<scene_object<nc> *>(z.other))(z.ri, z.rj, z.rk),
-						(*this)(i, j, k), n, z.Sfrac, gas(), g() * h.z);
+                        (*this)(i, j, k), n, z.Sfrac, gas(), g() * h.z);
             }
             if (Sfrac > tol)
                 z_flux(i, j, k).add_reflect((*this)(i, j, k), false, n, Sfrac, gas(), g() * h.z);
@@ -101,7 +101,7 @@ void scene_object<nc>::compute_outer_fluxes() {
             for (auto &z : side(2, 1, i, j, k)) {
                 Sfrac -= z.Sfrac;
                 z_flux(i, j, k).add((*this)(i, j, k-1),
-						(*static_cast<scene_object<nc> *>(z.other))(z.ri, z.rj, z.rk), n, z.Sfrac, gas(), g() * h.z);
+                        (*static_cast<scene_object<nc> *>(z.other))(z.ri, z.rj, z.rk), n, z.Sfrac, gas(), g() * h.z);
             }
             if (Sfrac > tol)
                 z_flux(i, j, k).add_reflect((*this)(i, j, k-1), true, n, Sfrac, gas(), g() * h.z);

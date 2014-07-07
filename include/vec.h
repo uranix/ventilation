@@ -4,70 +4,70 @@
 #include <cmath>
 
 namespace dir {
-	enum Direction {
-		X = 0,
-		Y = 1,
-		Z = 2,
-		DIR_BEGIN = X,
-		DIR_END = 3,
-	};
+    enum Direction {
+        X = 0,
+        Y = 1,
+        Z = 2,
+        DIR_BEGIN = X,
+        DIR_END = 3,
+    };
 
-	enum DirectionRange {
-		DIRECTIONS
-	};
+    enum DirectionRange {
+        DIRECTIONS
+    };
 
-	class DirectionIterator {
-		Direction dir;
-	public:
-		DirectionIterator(Direction dir) : dir(dir) { }
-		DirectionIterator &operator++() {
-			dir = static_cast<Direction>(static_cast<unsigned>(dir) + 1);
-			return *this;
-		}
-		Direction operator*() const {
-			return dir;
-		}
-		bool operator!=(DirectionIterator other) {
-			return this->dir != other.dir;
-		}
-	};
+    class DirectionIterator {
+        Direction dir;
+    public:
+        DirectionIterator(Direction dir) : dir(dir) { }
+        DirectionIterator &operator++() {
+            dir = static_cast<Direction>(static_cast<unsigned>(dir) + 1);
+            return *this;
+        }
+        Direction operator*() const {
+            return dir;
+        }
+        bool operator!=(DirectionIterator other) {
+            return this->dir != other.dir;
+        }
+    };
 
-	inline DirectionIterator begin(DirectionRange) { return DirectionIterator(DIR_BEGIN); }
-	inline DirectionIterator end(DirectionRange) { return DirectionIterator(DIR_END); }
+    inline DirectionIterator begin(DirectionRange) { return DirectionIterator(DIR_BEGIN); }
+    inline DirectionIterator end(DirectionRange) { return DirectionIterator(DIR_END); }
 
-	inline char to_char(Direction dir) {
-		if (dir == dir::X)
-			return 'X';
-		if (dir == dir::Y)
-			return 'Y';
-		return 'Z';
-	}
+    inline char to_char(Direction dir) {
+        if (dir == dir::X)
+            return 'X';
+        if (dir == dir::Y)
+            return 'Y';
+        return 'Z';
+    }
 
-	inline Direction from_char(char cdir) {
-		if (cdir == 'x' || cdir == 'X')
-			return dir::X;
-		if (cdir == 'y' || cdir == 'Y')
-			return dir::Y;
-		return dir::Z;
-	}
+    inline Direction from_char(char cdir) {
+        if (cdir == 'x' || cdir == 'X')
+            return dir::X;
+        if (cdir == 'y' || cdir == 'Y')
+            return dir::Y;
+        return dir::Z;
+    }
 
-	template<typename T>
-	T &select(Direction dir, T &i, T &j, T &k) {
-		if (dir == dir::X)
-			return i;
-		if (dir == dir::Y)
-			return j;
-		return k;
-	}
+    template<typename T>
+    T &select(Direction dir, T &i, T &j, T &k) {
+        if (dir == dir::X)
+            return i;
+        if (dir == dir::Y)
+            return j;
+        return k;
+    }
 
-	template<typename T>
-	const T &select(Direction dir, const T &i, const T &j, const T &k) {
-		if (dir == dir::X)
-			return i;
-		if (dir == dir::Y)
-			return j;
-		return k;
-	}
+    template<typename T>
+    const T &select(Direction dir, const T &i, const T &j, const T &k) {
+        if (dir == dir::X)
+            return i;
+        if (dir == dir::Y)
+            return j;
+        return k;
+    }
 };
 
 struct vec {
@@ -206,13 +206,13 @@ inline std::ostream &operator <<(std::ostream &o, const vec &r) {
 }
 
 namespace dir {
-	inline vec to_vec(Direction dir) {
-		if (dir == dir::X)
-			return vec(1, 0, 0);
-		if (dir == dir::Y)
-			return vec(0, 1, 0);
-		return vec(0, 0, 1);
-	}
+    inline vec to_vec(Direction dir) {
+        if (dir == dir::X)
+            return vec(1, 0, 0);
+        if (dir == dir::Y)
+            return vec(0, 1, 0);
+        return vec(0, 0, 1);
+    }
 }
 
 #endif

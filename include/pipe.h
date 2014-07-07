@@ -7,7 +7,7 @@ namespace objects {
 
 template<int nc>
 struct pipe : public scene_object<nc> {
-	dir::Direction dir;
+    dir::Direction dir;
     double surface, perimeter;
     double friction_coeff;
 

@@ -20,13 +20,13 @@ struct box {
         { }
     };
 
-	int n(dir::Direction dir) const {
-		if (dir == dir::X)
-			return nx;
-		if (dir == dir::Y)
-			return ny;
-		return nz;
-	}
+    int n(dir::Direction dir) const {
+        if (dir == dir::X)
+            return nx;
+        if (dir == dir::Y)
+            return ny;
+        return nz;
+    }
 
     typedef std::vector<Contact> ContactList;
 

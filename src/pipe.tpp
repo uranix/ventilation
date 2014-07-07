@@ -2,31 +2,31 @@ template<int nc>
 void pipe<nc>::compute_outer_fluxes() {
     const double tol = 1e-4;
 
-	int i, j, k, idir;
-	i = j = k = idir = 0;
-	vec n = dir::to_vec(dir);
-	double Sfrac = 1;
+    int i, j, k, idir;
+    i = j = k = idir = 0;
+    vec n = dir::to_vec(dir);
+    double Sfrac = 1;
 
-	this->flux_dir(dir, idir).zero();
-	for (auto &z : this->side(dir, 0, i, j, k)) {
-		Sfrac -= z.Sfrac;
-		this->flux_dir(dir, idir).add((*static_cast<scene_object<nc> *>(z.other))(z.ri, z.rj, z.rk),
-				(*this)(dir, idir), n, z.Sfrac, this->gas(), this->g() * this->h(dir));
-	}
-	if (Sfrac > tol)
-		this->flux_dir(dir, idir).add_reflect((*this)(dir, idir), false, n, Sfrac, this->gas(), this->g() * this->h(dir));
+    this->flux_dir(dir, idir).zero();
+    for (auto &z : this->side(dir, 0, i, j, k)) {
+        Sfrac -= z.Sfrac;
+        this->flux_dir(dir, idir).add((*static_cast<scene_object<nc> *>(z.other))(z.ri, z.rj, z.rk),
+                (*this)(dir, idir), n, z.Sfrac, this->gas(), this->g() * this->h(dir));
+    }
+    if (Sfrac > tol)
+        this->flux_dir(dir, idir).add_reflect((*this)(dir, idir), false, n, Sfrac, this->gas(), this->g() * this->h(dir));
 
-	idir = this->n(dir);
-	dir::select(dir, i, j, k) = idir;
-	Sfrac = 1;
-	this->flux_dir(dir, idir).zero();
-	for (auto &z : this->side(dir, 1, i, j, k)) {
-		Sfrac -= z.Sfrac;
-		this->flux_dir(dir, idir).add((*this)(dir, idir - 1), (*static_cast<scene_object<nc> *>(z.other))(z.ri, z.rj, z.rk),
-				n, z.Sfrac, this->gas(), this->g() * this->h(dir));
-	}
-	if (Sfrac > tol)
-		this->flux_dir(dir, idir).add_reflect((*this)(dir, idir - 1), true, n, Sfrac, this->gas(), this->g() * this->h(dir));
+    idir = this->n(dir);
+    dir::select(dir, i, j, k) = idir;
+    Sfrac = 1;
+    this->flux_dir(dir, idir).zero();
+    for (auto &z : this->side(dir, 1, i, j, k)) {
+        Sfrac -= z.Sfrac;
+        this->flux_dir(dir, idir).add((*this)(dir, idir - 1), (*static_cast<scene_object<nc> *>(z.other))(z.ri, z.rj, z.rk),
+                n, z.Sfrac, this->gas(), this->g() * this->h(dir));
+    }
+    if (Sfrac > tol)
+        this->flux_dir(dir, idir).add_reflect((*this)(dir, idir - 1), true, n, Sfrac, this->gas(), this->g() * this->h(dir));
 
 }
 
@@ -35,11 +35,11 @@ double pipe<nc>::get_max_dt() const {
     double maxv = 0;
     double hdir = this->h(dir);
 
-	for (int i = 0; i <= this->n(dir); i++) {
-		double v = this->flux_dir(dir, i).vmax;
-		if (v > maxv)
-			maxv = v;
-	}
+    for (int i = 0; i <= this->n(dir); i++) {
+        double v = this->flux_dir(dir, i).vmax;
+        if (v > maxv)
+            maxv = v;
+    }
 
     return hdir / maxv;
 }
