@@ -10,6 +10,7 @@ class solver {
     std::vector<objects::scene_object<nc> *> scene;
     const double C;
     double t;
+    double dt;
     int _step;
 
     gasinfo<nc> _gas;
@@ -28,10 +29,10 @@ public:
     const vec &g() const { return _g; }
 
     void compute_fluxes() {
-        for (auto p : scene)
+        for (auto p : scene) {
             p->compute_inner_fluxes();
-        for (auto p : scene)
             p->compute_outer_fluxes();
+        }
     }
     double estimate_timestep() {
         double dtmin = 1e20;
@@ -42,11 +43,27 @@ public:
         }
         return C * dtmin;
     }
-    void integrate(const double dt) {
+    void integrate() {
         for (auto p : scene)
-            p->integrate(dt);
-        for (auto p : scene)
+            p->copy_explicit();
+
+        compute_fluxes();
+        dt = estimate_timestep();
+        for (auto p : scene) {
             p->integrate_rhs(dt);
+            p->integrate(dt);
+            p->limit_slopes();
+        }
+
+        compute_fluxes();
+        for (auto p : scene) {
+            p->integrate_rhs(dt);
+            p->integrate(dt);
+            p->limit_slopes();
+        }
+
+        for (auto p : scene)
+            p->average_with_explicit();
 
         t += dt;
         _step++;
@@ -57,6 +74,9 @@ public:
     }
     double time() const {
         return t;
+    }
+    double timestep() const {
+        return dt;
     }
     int step() const {
         return _step;

@@ -104,12 +104,12 @@ int main() {
     solver.set_gravity(vec(0, 0, -9.81));
 
     while (solver.time() < 1000) {
-        solver.compute_fluxes();
-        double dt = solver.estimate_timestep();
-        solver.integrate(dt);
+        solver.integrate();
         if ((solver.step() % 500) == 0) {
-            std::cout << "t = " << solver.time() << " dt = "
-                << dt << " step = " << solver.step() << std::endl;
+            std::cout
+                << "t = " << solver.time()
+                << " dt = " << solver.timestep()
+                << " step = " << solver.step() << std::endl;
             solver.save("vtks/");
         }
     }

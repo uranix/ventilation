@@ -89,11 +89,10 @@ struct solver {
     solver(const std::vector<objects::scene_object<nc> *> &scene, const double C);
     void set_gas(const gasinfo<nc> &gas);
     void set_gravity(const vec &g);
-    void compute_fluxes();
-    double estimate_timestep();
-    void integrate(const double dt);
+    void integrate();
     void save(const std::string &);
     double time() const;
+    double timestep() const;
     int step() const;
 };
 %template(Solver) solver<NC>;

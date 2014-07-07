@@ -6,8 +6,8 @@ void scene_object<nc>::compute_inner_fluxes() {
                 vec n(1, 0, 0);
                 x_flux(i, j, k).zero();
                 x_flux(i, j, k).add(
-                        (*this)(i-1, j, k).template get<true >(dir::X),
-                        (*this)(i  , j, k).template get<false>(dir::X), n, 1.0, gas(), g() * h.x);
+                        val(i-1, j, k).template get<true >(dir::X),
+                        val(i  , j, k).template get<false>(dir::X), n, 1.0, gas(), g() * h.x);
             }
     for (int i = 0; i < nx; i++)
         for (int j = 1; j < ny; j++)
@@ -15,8 +15,8 @@ void scene_object<nc>::compute_inner_fluxes() {
                 vec n(0, 1, 0);
                 y_flux(i, j, k).zero();
                 y_flux(i, j, k).add(
-                        (*this)(i, j-1, k).template get<true >(dir::Y),
-                        (*this)(i, j  , k).template get<false>(dir::Y), n, 1.0, gas(), g() * h.y);
+                        val(i, j-1, k).template get<true >(dir::Y),
+                        val(i, j  , k).template get<false>(dir::Y), n, 1.0, gas(), g() * h.y);
             }
     for (int i = 0; i < nx; i++)
         for (int j = 0; j < ny; j++)
@@ -24,8 +24,8 @@ void scene_object<nc>::compute_inner_fluxes() {
                 vec n(0, 0, 1);
                 z_flux(i, j, k).zero();
                 z_flux(i, j, k).add(
-                        (*this)(i, j, k-1).template get<true >(dir::Z),
-                        (*this)(i, j, k  ).template get<false>(dir::Z), n, 1.0, gas(), g() * h.z);
+                        val(i, j, k-1).template get<true >(dir::Z),
+                        val(i, j, k  ).template get<false>(dir::Z), n, 1.0, gas(), g() * h.z);
             }
 }
 
@@ -44,11 +44,11 @@ void scene_object<nc>::compute_outer_fluxes() {
             for (auto &z : side(0, 0, i, j, k)) {
                 Sfrac -= z.Sfrac;
                 x_flux(i, j, k).add(
-                        (*static_cast<scene_object<nc> *>(z.other))(z.ri, z.rj, z.rk).template get<true >(dir::X),
-                        (*this)(i, j, k).template get<false>(dir::X), n, z.Sfrac, gas(), g() * h.x);
+                        static_cast<scene_object<nc> *>(z.other)->val(z.ri, z.rj, z.rk).template get<true >(dir::X),
+                        val(i, j, k).template get<false>(dir::X), n, z.Sfrac, gas(), g() * h.x);
             }
             if (Sfrac > tol)
-                x_flux(i, j, k).add_reflect((*this)(i, j, k).template get<false>(dir::X), false, n, Sfrac, gas(), g() * h.x);
+                x_flux(i, j, k).add_reflect(val(i, j, k).template get<false>(dir::X), false, n, Sfrac, gas(), g() * h.x);
 
             i = nx;
             Sfrac = 1;
@@ -56,12 +56,12 @@ void scene_object<nc>::compute_outer_fluxes() {
             for (auto &z : side(0, 1, i, j, k)) {
                 Sfrac -= z.Sfrac;
                 x_flux(i, j, k).add(
-                        (*this)(i-1, j, k).template get<true >(dir::X),
-                        (*static_cast<scene_object<nc> *>(z.other))(z.ri, z.rj, z.rk).template get<false >(dir::X),
+                        val(i-1, j, k).template get<true >(dir::X),
+                        static_cast<scene_object<nc> *>(z.other)->val(z.ri, z.rj, z.rk).template get<false >(dir::X),
                         n, z.Sfrac, gas(), g() * h.x);
             }
             if (Sfrac > tol)
-                x_flux(i, j, k).add_reflect((*this)(i-1, j, k).template get<true >(dir::X), true, n, Sfrac, gas(), g() * h.x);
+                x_flux(i, j, k).add_reflect(val(i-1, j, k).template get<true >(dir::X), true, n, Sfrac, gas(), g() * h.x);
         }
     for (int i = 0; i < nx; i++)
         for (int k = 0; k < nz; k++) {
@@ -73,11 +73,11 @@ void scene_object<nc>::compute_outer_fluxes() {
             for (auto &z : side(1, 0, i, j, k)) {
                 Sfrac -= z.Sfrac;
                 y_flux(i, j, k).add(
-                        (*static_cast<scene_object<nc> *>(z.other))(z.ri, z.rj, z.rk).template get<true >(dir::Y),
-                        (*this)(i, j, k).template get<false>(dir::Y), n, z.Sfrac, gas(), g() * h.y);
+                        static_cast<scene_object<nc> *>(z.other)->val(z.ri, z.rj, z.rk).template get<true >(dir::Y),
+                        val(i, j, k).template get<false>(dir::Y), n, z.Sfrac, gas(), g() * h.y);
             }
             if (Sfrac > tol)
-                y_flux(i, j, k).add_reflect((*this)(i, j, k).template get<false>(dir::Y), false, n, Sfrac, gas(), g() * h.y);
+                y_flux(i, j, k).add_reflect(val(i, j, k).template get<false>(dir::Y), false, n, Sfrac, gas(), g() * h.y);
 
             j = ny;
             Sfrac = 1;
@@ -85,12 +85,12 @@ void scene_object<nc>::compute_outer_fluxes() {
             for (auto &z : side(1, 1, i, j, k)) {
                 Sfrac -= z.Sfrac;
                 y_flux(i, j, k).add(
-                        (*this)(i, j-1, k).template get<true >(dir::Y),
-                        (*static_cast<scene_object<nc> *>(z.other))(z.ri, z.rj, z.rk).template get<false>(dir::Y),
+                        val(i, j-1, k).template get<true >(dir::Y),
+                        static_cast<scene_object<nc> *>(z.other)->val(z.ri, z.rj, z.rk).template get<false>(dir::Y),
                         n, z.Sfrac, gas(), g() * h.y);
             }
             if (Sfrac > tol)
-                y_flux(i, j, k).add_reflect((*this)(i, j-1, k).template get<true >(dir::Y), true, n, Sfrac, gas(), g() * h.y);
+                y_flux(i, j, k).add_reflect(val(i, j-1, k).template get<true >(dir::Y), true, n, Sfrac, gas(), g() * h.y);
         }
     for (int i = 0; i < nx; i++)
         for (int j = 0; j < ny; j++) {
@@ -102,11 +102,11 @@ void scene_object<nc>::compute_outer_fluxes() {
             for (auto &z : side(2, 0, i, j, k)) {
                 Sfrac -= z.Sfrac;
                 z_flux(i, j, k).add(
-                        (*static_cast<scene_object<nc> *>(z.other))(z.ri, z.rj, z.rk).template get<true >(dir::Z),
-                        (*this)(i, j, k).template get<false>(dir::Z), n, z.Sfrac, gas(), g() * h.z);
+                        static_cast<scene_object<nc> *>(z.other)->val(z.ri, z.rj, z.rk).template get<true >(dir::Z),
+                        val(i, j, k).template get<false>(dir::Z), n, z.Sfrac, gas(), g() * h.z);
             }
             if (Sfrac > tol)
-                z_flux(i, j, k).add_reflect((*this)(i, j, k).template get<false>(dir::Z), false, n, Sfrac, gas(), g() * h.z);
+                z_flux(i, j, k).add_reflect(val(i, j, k).template get<false>(dir::Z), false, n, Sfrac, gas(), g() * h.z);
 
             k = nz;
             Sfrac = 1;
@@ -114,12 +114,12 @@ void scene_object<nc>::compute_outer_fluxes() {
             for (auto &z : side(2, 1, i, j, k)) {
                 Sfrac -= z.Sfrac;
                 z_flux(i, j, k).add(
-                        (*this)(i, j, k-1).template get<true >(dir::Z),
-                        (*static_cast<scene_object<nc> *>(z.other))(z.ri, z.rj, z.rk).template get<false>(dir::Y),
+                        val(i, j, k-1).template get<true >(dir::Z),
+                        static_cast<scene_object<nc> *>(z.other)->val(z.ri, z.rj, z.rk).template get<false>(dir::Y),
                         n, z.Sfrac, gas(), g() * h.z);
             }
             if (Sfrac > tol)
-                z_flux(i, j, k).add_reflect((*this)(i, j, k-1).template get<true >(dir::Y), true, n, Sfrac, gas(), g() * h.z);
+                z_flux(i, j, k).add_reflect(val(i, j, k-1).template get<true >(dir::Y), true, n, Sfrac, gas(), g() * h.z);
         }
 }
 
@@ -151,11 +151,18 @@ double scene_object<nc>::get_max_dt() const {
 }
 
 template<int nc>
-void scene_object<nc>::integrate(sloped_state<nc> cell, const flux<nc> &left, const flux<nc> &right, double h, const double dt) {
+void scene_object<nc>::integrate(sloped_state<nc> cell, const flux<nc> &left, const flux<nc> &right, dir::Direction dir, double h, const double dt) {
     for (int i = 0; i < nc; i++)
         cell.avg.rho[i] -= dt * (right.fdens[i] - left.fdens[i]) / h;
     cell.avg.rhou -= dt * (right.fmom - left.fmom) / h;
     cell.avg.rhoE -= dt * (right.fener - left.fener) / h;
+
+    vec v = cell.avg.velocity();
+    double p = gas().pressure(cell.avg);
+    for (int i = 0; i < nc; i++)
+        cell.slope(dir).rho[i] -= 2 * dt * (right.fdens[i] + left.fdens[i] - 2 * cell.avg.rho[i] * v(dir)) / h;
+    cell.slope(dir).rhou -= 2 * dt * (right.fmom + left.fmom - 2 * (cell.avg.rhou * v(dir) + p * dir::to_vec(dir))) / h;
+    cell.slope(dir).rhoE -= 2 * dt * (right.fener + left.fener - 2 * (cell.avg.rhoE + p) * v(dir)) / h;
 }
 
 template<int nc>
@@ -163,9 +170,9 @@ void scene_object<nc>::integrate(const double dt) {
     for (int i = 0; i < nx; i++)
         for (int j = 0; j < ny; j++)
             for (int k = 0; k < nz; k++) {
-                integrate(ref(i, j, k), x_flux(i, j, k), x_flux(i+1, j, k), h.x, dt);
-                integrate(ref(i, j, k), y_flux(i, j, k), y_flux(i, j+1, k), h.y, dt);
-                integrate(ref(i, j, k), z_flux(i, j, k), z_flux(i, j, k+1), h.z, dt);
+                integrate(ref(i, j, k), x_flux(i, j, k), x_flux(i+1, j, k), dir::X, h.x, dt);
+                integrate(ref(i, j, k), y_flux(i, j, k), y_flux(i, j+1, k), dir::Y, h.y, dt);
+                integrate(ref(i, j, k), z_flux(i, j, k), z_flux(i, j, k+1), dir::Z, h.z, dt);
             }
 }
 
@@ -173,6 +180,11 @@ template<int nc>
 void scene_object<nc>::integrate_rhs(sloped_state<nc> cell, const state<nc> &source, const double dt) {
     cell.avg.rhoE += dt * g().dot(cell.avg.rhou);
     cell.avg.rhou += dt * cell.avg.density() * g();
+
+    for (auto dir : dir::DIRECTIONS) {
+        cell.slope(dir).rhoE += dt * g().dot(cell.slope(dir).rhou);
+        cell.slope(dir).rhou += dt * cell.slope(dir).density() * g();
+    }
 
     for (int i = 0; i < nc; i++)
         cell.avg.rho[i] += dt * source.rho[i];
@@ -188,13 +200,65 @@ void scene_object<nc>::integrate_rhs(const double dt) {
                 integrate_rhs(ref(i, j, k), this->source(i, j, k), dt);
 }
 
+double minmod(double a, double b) {
+    if (a * b <= 0)
+        return 0;
+    if (a > 0)
+        return std::min(a, b);
+    return std::max(a, b);
+}
+
+double minmod3(double a, double b, double c) {
+    return minmod(a, minmod(b, c));
+}
+
+template<int nc>
+void limit(state<nc> &slope, const state<nc> &lf, const state<nc> &ce, const state<nc> &rt) {
+    for (int i = 0; i < nc; i++)
+        slope.rho[i] = minmod3(slope.rho[i], ce.rho[i] - lf.rho[i], rt.rho[i] - ce.rho[i]);
+    for (auto d : dir::DIRECTIONS)
+        slope.rhou(d) = minmod3(slope.rhou(d), ce.rhou(d) - lf.rhou(d), rt.rhou(d) - ce.rhou(d));
+    slope.rhoE = minmod3(slope.rhoE, ce.rhoE - lf.rhoE, rt.rhoE - ce.rhoE);
+}
+
+template<int nc>
+void scene_object<nc>::limit_slopes() {
+    for (int j = 0; j < ny; j++)
+        for (int k = 0; k < nz; k++) {
+            ref(0, j, k).sx.zero();
+            ref(nx - 1, j, k).sx.zero();
+        }
+    for (int i = 0; i < nx; i++)
+        for (int k = 0; k < nz; k++) {
+            ref(i, 0, k).sy.zero();
+            ref(i, ny - 1, k).sy.zero();
+        }
+    for (int i = 0; i < nx; i++)
+        for (int j = 0; j < ny; j++) {
+            ref(i, j, 0).sz.zero();
+            ref(i, j, nz - 1).sz.zero();
+        }
+    for (int i = 1; i < nx - 1; i++)
+        for (int j = 0; j < ny; j++)
+            for (int k = 0; k < nz; k++)
+                limit(ref(i, j, k).sx, val(i-1, j, k).ce(), val(i, j, k).ce(), val(i+1, j, k).ce());
+    for (int i = 0; i < nx; i++)
+        for (int j = 1; j < ny - 1; j++)
+            for (int k = 0; k < nz; k++)
+                limit(ref(i, j, k).sy, val(i, j-1, k).ce(), val(i, j, k).ce(), val(i, j+1, k).ce());
+    for (int i = 0; i < nx; i++)
+        for (int j = 0; j < ny; j++)
+            for (int k = 1; k < nz - 1; k++)
+                limit(ref(i, j, k).sz, val(i, j, k-1).ce(), val(i, j, k).ce(), val(i, j, k+1).ce());
+}
+
 template<int nc>
 void scene_object<nc>::debug_avg() const {
     double Tavg = 0;
     for (int i = 0; i < nx; i++)
         for (int j = 0; j < ny; j++)
             for (int k = 0; k < nz; k++)
-                Tavg += gas().temperature((*this)(i, j, k).ce());
+                Tavg += gas().temperature(val(i, j, k).ce());
     Tavg /= nx * ny * nz;
     std::cout << "Tavg = " << Tavg << std::endl;
 }

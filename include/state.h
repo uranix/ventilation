@@ -13,7 +13,13 @@ struct state {
     vec rhou;
     double rhoE;
 
-    state() : rhou(0), rhoE(0) {
+    state() {
+        zero();
+    }
+
+    void zero() {
+        rhou = vec(0);
+        rhoE = 0;
         for (int i = 0; i < nc; i++)
             rho[i] = 0;
     }

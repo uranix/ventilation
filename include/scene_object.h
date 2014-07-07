@@ -21,7 +21,9 @@ namespace objects {
 
 template<int nc>
 struct scene_object : public box {
+    state<nc> *_oldstates;
     state<nc> *_states;
+    state<nc> *_oldslopes[3];
     state<nc> *_slopes[3];
     state<nc> *_sources;
     flux<nc> *_fluxes[3];
@@ -31,8 +33,11 @@ struct scene_object : public box {
         : box(nx, ny, nz, ll, ur, id), solver(nullptr)
     {
         _states = new state<nc>[nx * ny * nz];
-        for (int i = 0; i < 3; i++)
+        _oldstates = new state<nc>[nx * ny * nz];
+        for (int i = 0; i < 3; i++) {
             _slopes[i] = new state<nc>[nx * ny * nz];
+            _oldslopes[i] = new state<nc>[nx * ny * nz];
+        }
         _sources = new state<nc>[nx * ny * nz];
 
         _fluxes[0] = new flux<nc>[(nx + 1) * ny * nz];
@@ -54,10 +59,12 @@ struct scene_object : public box {
 
     virtual ~scene_object() {
         delete[] _states;
+        delete[] _oldstates;
         delete[] _sources;
 
         for (int i = 0; i < 3; i++) {
             delete[] _slopes[i];
+            delete[] _oldslopes[i];
             delete[] _fluxes[i];
         }
     }
@@ -71,6 +78,33 @@ struct scene_object : public box {
                 }
     }
 
+    void copy_explicit() {
+        for (int i = 0; i < nx * ny * nz; i++) {
+            _oldstates[i] = _states[i];
+            _oldslopes[0][i] = _slopes[0][i];
+            _oldslopes[1][i] = _slopes[1][i];
+            _oldslopes[2][i] = _slopes[2][i];
+        }
+    }
+
+    void average(const state<nc> &u0, state<nc> &u2) {
+        for (int i = 0; i < nc; i++)
+            u2.rho[i] = .5 * (u0.rho[i] + u2.rho[i]);
+        u2.rhou = .5 * (u0.rhou + u2.rhou);
+        u2.rhoE = .5 * (u0.rhoE + u2.rhoE);
+    }
+
+    void average_with_explicit() {
+        for (int i = 0; i < nx * ny * nz; i++) {
+            average(_oldstates[i], _states[i]);
+            average(_oldslopes[0][i], _slopes[0][i]);
+            average(_oldslopes[1][i], _slopes[1][i]);
+            average(_oldslopes[2][i], _slopes[2][i]);
+        }
+    }
+
+    void limit_slopes();
+
     void fill_sources(const functor<nc> &f) {
         for (int i = 0; i < nx; i++)
             for (int j = 0; j < ny; j++)
@@ -78,7 +112,7 @@ struct scene_object : public box {
                     f(center(i, j, k), this->source(i, j, k));
     }
 
-    const_sloped_state<nc> operator()(int i, int j, int k) const {
+    const_sloped_state<nc> val(int i, int j, int k) const {
         assert(i >= 0 && i < nx);
         assert(j >= 0 && j < ny);
         assert(k >= 0 && k < nz);
@@ -106,12 +140,12 @@ struct scene_object : public box {
                 );
     }
 
-    const_sloped_state<nc> operator()(dir::Direction dir, int i) const {
+    const_sloped_state<nc> val(dir::Direction dir, int i) const {
         if (dir == dir::X)
-            return (*this)(i, 0, 0);
+            return val(i, 0, 0);
         if (dir == dir::Y)
-            return (*this)(0, i, 0);
-        return (*this)(0, 0, i);
+            return val(0, i, 0);
+        return val(0, 0, i);
     }
 
     #define MAYBECONST
@@ -126,7 +160,8 @@ struct scene_object : public box {
 
     virtual double get_max_dt() const;
 
-    virtual void integrate(sloped_state<nc> cell, const flux<nc> &left, const flux<nc> &right, double h, const double dt);
+    virtual void integrate(sloped_state<nc> cell, const flux<nc> &left, const flux<nc> &right,
+            dir::Direction dir, double h, const double dt);
     virtual void integrate_rhs(sloped_state<nc> cell, const state<nc> &source, const double dt);
     virtual void integrate(const double dt);
     virtual void integrate_rhs(const double dt);

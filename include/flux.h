@@ -9,39 +9,13 @@ struct avg_params {
     double specific_energy;
     double pressure;
 
-    static double shc(double x) {
-        if (x < 1e-8)
-            return 1;
-        return sinh(x) / x;
-    }
-
     double solve(const avg_params &left, const avg_params &right, const vec &norm);
     template<int nc>
     void reconstruct(const state<nc> &state, const gasinfo<nc> &gas, const vec &gh, const vec &norm) {
-        const double gnh = gh.dot(norm);
-        if (fabs(gnh) < 1e-8) {
-            density = state.density();
-            velocity = state.velocity();
-            specific_energy = state.specific_energy();
-            pressure = gas.pressure(state);
-            return;
-        }
-        const double gamma = gas.gamma_factor(state);
-        double uz = state.velocity().dot(norm);
-        const double kh = 0.5 * gnh / (state.specific_energy() * gamma * (gamma - 1) - uz * uz);
-        const double ravg = state.density();
-        const double rho0 = ravg / shc(.5 * kh);
-        const double uz0 = state.rhou.dot(norm) / rho0;
-        double u2 = state.velocity().norm2();
-        const double eps0 = (2 * state.rhoE - ravg * (uz0 * uz0 + u2 - uz * uz)) /
-            (2 * rho0 * shc(.5 * gamma * kh));
-
-        density = rho0 * exp(.5 * kh);
-        double uznew = rho0 * uz0 / density;
+        density = state.density();
         velocity = state.velocity();
-        velocity += (uznew - uz) * norm;
-        pressure = (gamma - 1) * rho0 * eps0 * exp(.5 * gamma * kh);
-        specific_energy = pressure / density / (gamma - 1);
+        specific_energy = state.specific_energy();
+        pressure = gas.pressure(state);
     }
 };
 

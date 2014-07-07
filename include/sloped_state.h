@@ -59,6 +59,13 @@ struct sloped_state {
     sloped_state(state<nc> &avg, state<nc> &sx, state<nc> &sy, state<nc> &sz)
         : avg(avg), sx(sx), sy(sy), sz(sz)
     { }
+    state<nc> &slope(dir::Direction dir) {
+        if (dir == dir::X)
+            return sx;
+        if (dir == dir::Y)
+            return sy;
+        return sz;
+    }
 };
 
 #endif
