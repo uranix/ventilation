@@ -4,6 +4,7 @@
 #include "pipe.h"
 #include "fan.h"
 #include "atm.h"
+#include "tracer.h"
 
 #include "solver.h"
 
@@ -18,21 +19,12 @@ struct AtmValues : public functor<2> {
     }
 };
 
-struct GvValues : public functor<2> {
-    const gasinfo<2> gas;
-    GvValues(const gasinfo<2> &gas) : gas(gas) { }
-    void operator()(const vec &p, state<2> &st) const {
-        std::vector<double> r = {1.202, 0};
-        st.from_ruT(r, vec(0, 0, -2.07), 293, gas);
-    }
-};
-
 struct RoomValues : public functor<2> {
     const gasinfo<2> gas;
     RoomValues(const gasinfo<2> &gas) : gas(gas) { }
     void operator()(const vec &p, state<2> &st) const {
-        std::vector<double> r = {1.274, 0};
-        st.from_ruT(r, vec(0, 0, 0), 283, gas);
+        std::vector<double> r = {1.23, 0};
+        st.from_ruT(r, vec(0, 0, 0), 293, gas);
     }
 };
 
@@ -40,8 +32,8 @@ struct PipeValues : public functor<2> {
     const gasinfo<2> gas;
     PipeValues(const gasinfo<2> &gas) : gas(gas) { }
     void operator()(const vec &p, state<2> &st) const {
-        std::vector<double> r = {0.73, 0.3};
-        st.from_ruT(r, vec(0, 0, 0), 283, gas);
+        std::vector<double> r = {0.6863, 0.3};
+        st.from_ruT(r, vec(0, 0, 0), 293, gas);
     }
 };
 
@@ -51,6 +43,7 @@ typedef objects::room<2> Room;
 typedef objects::fan<2> Fan;
 typedef objects::scene_object<2> Object;
 typedef solver<2> Solver;
+typedef tracer Tracer;
 
 int main() {
     feenableexcept(FE_INVALID | FE_DIVBYZERO | FE_OVERFLOW);
@@ -60,18 +53,23 @@ int main() {
     gas.set(1, 16, 1.33, 1e-5);
 
     Atm  gv1   (vec(-402, -2, 200), vec(-398, 2, 204), "gv1");
-    Pipe pipe2 (50, 'Z', vec(-401.5, -1.5, 1.5), vec(-398.5, 1.5, 200), "pipe2");
+    Fan  pipe2 (50, 'Z', vec(-401.5, -1.5, 1.5), vec(-398.5, 1.5, 200), "pipe2", -100000, -2.07 * 9);
     Room corn3 (1, 1, 1, vec(-401.5, -1.5, -1.5), vec(-398.5, 1.5, 1.5), "corn3");
-    Pipe pipe4 (10, 'X', vec(-398.5, -1.5, -1.5), vec(-11.5, 1.5, 1.5), "pipe4");
+    Pipe pipe4 (50, 'X', vec(-398.5, -1.5, -1.5), vec(-11.5, 1.5, 1.5), "pipe4");
     Room bra5  (1, 1, 1, vec(-11.5, -1.5, -1.5), vec(-8.5, 1.5, 1.5), "bra5");
     Pipe pipe6 (1,  'X', vec(-8.5, -1.5, -1.5), vec(-1.5, 1.5, 1.5), "pipe6");
     Room bra7  (1, 1, 1, vec(-1.5, -1.5, -1.5), vec(1.5, 1.5, 1.5), "bra7");
-    Pipe pipe8 (10, 'X', vec(1.5, -1.5, -1.5), vec(398.5, 1.5, 1.5), "pipe8");
+    Pipe pipe8 (50, 'X', vec(1.5, -1.5, -1.5), vec(398.5, 1.5, 1.5), "pipe8");
     Room corn9 (1, 1, 1, vec(398.5, -1.5, -1.5), vec(401.5, 1.5, 1.5), "corn9");
     Pipe pipe10(50, 'Z', vec(398.5, -1.5, 1.5), vec(401.5, 1.5, 200), "pipe10");
     Atm  atm11 (vec(398, -2, 200), vec(402, 2, 204), "atm11");
+    Pipe pipe12(20, 'Y', vec(-1.5, 1.5, -1.5), vec(1.5, 198.5, 1.5), "pipe12");
+    Room dend13(1, 1, 1, vec(-1.5, 198.5, -1.5), vec(1.5, 201.5, 1.5), "dend13");
+    Pipe pipe14(10, 'X', vec(-9.5, 199.5, -.5), vec(-1.5, 200.5, .5), "pipe14");
+    Room corn15(1, 1, 1, vec(-10.5, 199.5, -.5), vec(-9.5, 200.5, .5), "corn15");
+    Fan  vmp16 (20, 'Y', vec(-10.5, 1.5, -.5), vec(-9.5, 199.5, .5), "vmp16", 100000, 12.5);
 
-    gv1   .fill(GvValues  (gas));
+    gv1   .fill(AtmValues (gas));
     pipe2 .fill(RoomValues(gas));
     corn3 .fill(RoomValues(gas));
     pipe4 .fill(RoomValues(gas));
@@ -82,6 +80,11 @@ int main() {
     corn9 .fill(RoomValues(gas));
     pipe10.fill(RoomValues(gas));
     atm11 .fill(AtmValues (gas));
+    pipe12.fill(PipeValues(gas));
+    dend13.fill(PipeValues(gas));
+    pipe14.fill(RoomValues(gas));
+    corn15.fill(RoomValues(gas));
+    vmp16 .fill(RoomValues(gas));
 
     connect(gv1, pipe2);
     connect(pipe2, corn3);
@@ -93,19 +96,29 @@ int main() {
     connect(pipe8, corn9);
     connect(corn9, pipe10);
     connect(pipe10, atm11);
+    connect(bra7, pipe12);
+    connect(pipe12, dend13);
+    connect(dend13, pipe14);
+    connect(pipe14, corn15);
+    connect(corn15, vmp16);
+    connect(bra5, vmp16);
 
     std::vector<Object *> scene = {
-        &gv1, &pipe2, &corn3, &pipe4, &bra5,
-        &pipe6, &bra7, &pipe8, &corn9, &pipe10,
-        &atm11};
+        &gv1, &pipe2, &corn3, &pipe4, &bra5, &pipe6,
+        &bra7, &pipe8, &corn9, &pipe10, &atm11,
+        &pipe12, &dend13, &pipe14, &corn15, &vmp16};
 
-    Solver solver(scene, .25);
+    Tracer tr({vec(0, 200, 0), vec(0, 0, 0), vec(400, 0, 0), vec(400, 0, 200)}, "line", 0.1);
+
+    std::vector<Tracer *> tracers = {&tr};
+
+    Solver solver(scene, tracers, .5);
     solver.set_gas(gas);
     solver.set_gravity(vec(0, 0, -9.81));
 
     while (solver.time() < 1000) {
         solver.integrate();
-        if ((solver.step() % 500) == 0) {
+        if ((solver.step() % 2000) == 0) {
             std::cout
                 << "t = " << solver.time()
                 << " dt = " << solver.timestep()

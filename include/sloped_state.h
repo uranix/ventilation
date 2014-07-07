@@ -48,6 +48,14 @@ struct const_sloped_state {
             return rec<posdir>(sy);
         return rec<posdir>(sz);
     }
+
+    const state<nc> &slope(dir::Direction dir) const {
+        if (dir == dir::X)
+            return sx;
+        if (dir == dir::Y)
+            return sy;
+        return sz;
+    }
 };
 
 template <int nc>

@@ -45,6 +45,23 @@ struct scene_object : public box {
         _fluxes[2] = new flux<nc>[(nz + 1) * ny * nx];
     }
 
+    state<nc> state_at(vec p) {
+        int i, j, k;
+        vec ofs;
+        locate_point(p, i, j, k, ofs);
+        const const_sloped_state<nc> &v = val(i, j, k);
+        state<nc> ret = v.ce();
+#if RECONSTRUCTED_OUTPUT
+        for (auto d : dir::DIRECTIONS) {
+            for (int i = 0; i < nc; i++)
+                ret.rho[i] += ofs(d) * v.slope(d).rho[i];
+            ret.rhou += ofs(d) * v.slope(d).rhou;
+            ret.rhoE += ofs(d) * v.slope(d).rhoE;
+        }
+#endif
+        return ret;
+    }
+
     void set_solver(const ::solver<nc> *solver) {
         this->solver = solver;
     }

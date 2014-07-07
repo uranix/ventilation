@@ -59,6 +59,31 @@ struct box {
         }
     }
 
+    bool has_point(vec p) {
+        if (p.x < ll.x || p.y < ll.y || p.z < ll.z)
+            return false;
+        if (p.x > ur.x || p.y > ur.y || p.z > ur.z)
+            return false;
+        return true;
+    }
+
+    void locate_point(vec p, int &i, int &j, int &k, vec &ofs) {
+        vec dp = p - ll;
+        dp /= h;
+        i = static_cast<int>(dp.x);
+        j = static_cast<int>(dp.y);
+        k = static_cast<int>(dp.z);
+        if (i < 0) i = 0;
+        if (j < 0) j = 0;
+        if (k < 0) k = 0;
+        if (i >= nx) i = nx - 1;
+        if (j >= ny) j = ny - 1;
+        if (k >= nz) k = nz - 1;
+        dp -= vec(i + .5, j + .5, k + .5);
+        dp *= 2;
+        ofs = dp;
+    }
+
     vec center(int i, int j, int k) {
         return ll + vec(i + .5, j + .5, k + .5) * h;
     }

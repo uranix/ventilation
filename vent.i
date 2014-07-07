@@ -82,11 +82,23 @@ namespace objects {
 %template(Pipe) objects::pipe<NC>;
 %template(Fan) objects::fan<NC>;
 %template(Atm) objects::atm<NC>;
+%template(Chain) std::vector<vec>;
+
+%rename(Tracer) tracer;
+class tracer {
+public:
+    tracer(const std::vector<vec> &chain, const std::string &name, double step);
+};
+
 %template(Scene) std::vector<objects::scene_object<NC> *>;
+%template(Tracers) std::vector<tracer *>;
 
 template<int nc>
 struct solver {
-    solver(const std::vector<objects::scene_object<nc> *> &scene, const double C);
+    solver(
+        const std::vector<objects::scene_object<nc> *> &scene,
+        const std::vector<tracer *> &tracers,
+        const double C);
     void set_gas(const gasinfo<nc> &gas);
     void set_gravity(const vec &g);
     void integrate();

@@ -36,14 +36,12 @@ connect(fan, room);
 connect(pipe2, room);
 connect(pipe2, atm);
 
-solver = Solver([fan, room, pipe2, atm, atm2], .25);
+solver = Solver([fan, room, pipe2, atm, atm2], [], .25);
 solver.set_gas(gas);
 solver.set_gravity(vec(0, 0, 0));
 
 while solver.time() < 10:
-    solver.compute_fluxes()
-    dt = solver.estimate_timestep()
-    solver.integrate(dt)
+    solver.integrate()
     if ((solver.step() % 50) == 0):
-        print 't =', solver.time(), ' dt =', dt, ' step =', solver.step()
+        print 't =', solver.time(), ' dt =', solver.timestep(), ' step =', solver.step()
         solver.save('vtks/')

@@ -24,5 +24,5 @@ SWIG_LINK_LIBRARIES(vent ${PYTHON_LIBRARIES} vent)
 add_executable(main main.cpp)
 target_link_libraries(main vent)
 
-add_executable(col col.cpp)
-target_link_libraries(col vent)
+# add_executable(col col.cpp)
+# target_link_libraries(col vent)

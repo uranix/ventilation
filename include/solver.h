@@ -2,12 +2,14 @@
 #define __SOLVER_H__
 
 #include "scene_object.h"
+#include "tracer.h"
 
 #include <vector>
 
 template<int nc>
 class solver {
     std::vector<objects::scene_object<nc> *> scene;
+    std::vector<tracer *> tracers;
     const double C;
     double t;
     double dt;
@@ -16,7 +18,9 @@ class solver {
     gasinfo<nc> _gas;
     vec _g;
 public:
-    solver(const std::vector<objects::scene_object<nc> *> &scene, const double C) : scene(scene), C(C)
+    solver(const std::vector<objects::scene_object<nc> *> &scene,
+            const std::vector<tracer *> &tracers, const double C)
+        : scene(scene), tracers(tracers), C(C)
     {
         for (auto p : scene)
             p->set_solver(this);
@@ -71,6 +75,17 @@ public:
     void save(const std::string &prefix) {
         for (auto p : scene)
             p->save(prefix, _step);
+        for (auto t : tracers) {
+            t->template walk<nc>(prefix, _step, gas(), [this] (vec p) {
+                for (auto o : scene) {
+                    if (o->has_point(p))
+                        return o->state_at(p);
+                }
+                state<nc> wrong;
+                wrong.rho[0] = 1;
+                return wrong;
+            });
+        }
     }
     double time() const {
         return t;
