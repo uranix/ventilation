@@ -1,18 +1,4 @@
-
-    MAYBECONST state<nc> &operator()(int i, int j, int k) MAYBECONST {
-        assert(i >= 0 && i < nx);
-        assert(j >= 0 && j < ny);
-        assert(k >= 0 && k < nz);
-        return _states[i + (j + k * ny) * nx];
-    }
-
-    MAYBECONST state<nc> &operator()(dir::Direction dir, int i) MAYBECONST {
-        if (dir == dir::X)
-            return (*this)(i, 0, 0);
-        if (dir == dir::Y)
-            return (*this)(0, i, 0);
-        return (*this)(0, 0, i);
-    }
+// vim:ft=cpp et sts=4 ts=4 sw=4 si
 
     MAYBECONST state<nc> &source(int i, int j, int k) MAYBECONST {
         assert(i >= 0 && i < nx);

@@ -43,13 +43,13 @@ void scene_object<nc>::save(const std::string &prefix, const int step) const {
         for (int k = 0; k < nz; k++)
             for (int j = 0; j < ny; j++)
                 for (int i = 0; i < nx; i++)
-                    put<float>(f, (*this)(i, j, k).rho[ic]);
+                    put<float>(f, (*this)(i, j, k).ce().rho[ic]);
     }
     f << "\nVECTORS v float\n";
     for (int k = 0; k < nz; k++)
         for (int j = 0; j < ny; j++)
             for (int i = 0; i < nx; i++) {
-                const vec &v = (*this)(i, j, k).velocity();
+                const vec &v = (*this)(i, j, k).ce().velocity();
                 put<float>(f, v.x);
                 put<float>(f, v.y);
                 put<float>(f, v.z);
@@ -58,17 +58,17 @@ void scene_object<nc>::save(const std::string &prefix, const int step) const {
     for (int k = 0; k < nz; k++)
         for (int j = 0; j < ny; j++)
             for (int i = 0; i < nx; i++)
-                put<float>(f, gas().pressure((*this)(i, j, k)));
+                put<float>(f, gas().pressure((*this)(i, j, k).ce()));
     f << "\nSCALARS T float\nLOOKUP_TABLE default\n";
     for (int k = 0; k < nz; k++)
         for (int j = 0; j < ny; j++)
             for (int i = 0; i < nx; i++)
-                put<float>(f, gas().temperature((*this)(i, j, k)));
+                put<float>(f, gas().temperature((*this)(i, j, k).ce()));
     f << "\nSCALARS eps float\nLOOKUP_TABLE default\n";
     for (int k = 0; k < nz; k++)
         for (int j = 0; j < ny; j++)
             for (int i = 0; i < nx; i++)
-                put<float>(f, gas().specific_energy((*this)(i, j, k)));
+                put<float>(f, gas().specific_energy((*this)(i, j, k).ce()));
     f << std::endl;
     f.close();
 }

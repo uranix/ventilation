@@ -21,14 +21,14 @@ struct fan : public pipe<nc> {
     }
     ~fan() { }
 
-    virtual void integrate_rhs(state<nc> &cell, const state<nc> &source, double dt) {
+    virtual void integrate_rhs(sloped_state<nc> cell, const state<nc> &source, double dt) {
         pipe<nc>::integrate_rhs(cell, source, dt);
 
-        double s = this->surface * cell.velocity()(this->dir) / Qmax;
+        double s = this->surface * cell.avg.velocity()(this->dir) / Qmax;
         vec gradP = (1 - s) * gradPmax;
 
-        cell.rhou += dt * gradP;
-        cell.rhoE += dt * gradP.dot(cell.velocity());
+        cell.avg.rhou += dt * gradP;
+        cell.avg.rhoE += dt * gradP.dot(cell.avg.velocity());
     }
 };
 
