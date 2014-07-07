@@ -2,111 +2,45 @@ template<int nc>
 void pipe<nc>::compute_outer_fluxes() {
     const double tol = 1e-4;
 
-    if (dir == 0) {
-        int j = 0;
-        int k = 0;
+	int i, j, k, idir;
+	i = j = k = idir = 0;
+	vec n = dir::to_vec(dir);
+	double Sfrac = 1;
 
-        vec n(1, 0, 0);
-        double Sfrac = 1;
-        int i = 0;
+	this->flux_dir(dir, idir).zero();
+	for (auto &z : this->side(dir, 0, i, j, k)) {
+		Sfrac -= z.Sfrac;
+		this->flux_dir(dir, idir).add((*static_cast<scene_object<nc> *>(z.other))(z.ri, z.rj, z.rk),
+				(*this)(dir, idir), n, z.Sfrac, this->gas(), this->g() * this->h(dir));
+	}
+	if (Sfrac > tol)
+		this->flux_dir(dir, idir).add_reflect((*this)(dir, idir), false, n, Sfrac, this->gas(), this->g() * this->h(dir));
 
-        this->x_flux(i, j, k).zero();
-        for (auto &z : this->side(0, 0, i, j, k)) {
-            Sfrac -= z.Sfrac;
-            this->x_flux(i, j, k).add((*static_cast<scene_object<nc> *>(z.other))(z.ri, z.rj, z.rk), (*this)(i, j, k), n, z.Sfrac, this->gas(), this->g());
-        }
-        if (Sfrac > tol)
-            this->x_flux(i, j, k).add_reflect((*this)(i, j, k), false, n, Sfrac, this->gas(), this->g());
+	idir = this->n(dir);
+	dir::select(dir, i, j, k) = idir;
+	Sfrac = 1;
+	this->flux_dir(dir, idir).zero();
+	for (auto &z : this->side(dir, 1, i, j, k)) {
+		Sfrac -= z.Sfrac;
+		this->flux_dir(dir, idir).add((*this)(dir, idir - 1), (*static_cast<scene_object<nc> *>(z.other))(z.ri, z.rj, z.rk),
+				n, z.Sfrac, this->gas(), this->g() * this->h(dir));
+	}
+	if (Sfrac > tol)
+		this->flux_dir(dir, idir).add_reflect((*this)(dir, idir - 1), true, n, Sfrac, this->gas(), this->g() * this->h(dir));
 
-        i = this->nx;
-        Sfrac = 1;
-        this->x_flux(i, j, k).zero();
-        for (auto &z : this->side(0, 1, i, j, k)) {
-            Sfrac -= z.Sfrac;
-            this->x_flux(i, j, k).add((*this)(i-1, j, k), (*static_cast<scene_object<nc> *>(z.other))(z.ri, z.rj, z.rk), n, z.Sfrac, this->gas(), this->g());
-        }
-        if (Sfrac > tol)
-            this->x_flux(i, j, k).add_reflect((*this)(i-1, j, k), true, n, Sfrac, this->gas(), this->g());
-    }
-
-    if (dir == 1) {
-        int i = 0;
-        int k = 0;
-        vec n(0, 1, 0);
-        double Sfrac = 1;
-        int j = 0;
-
-        this->y_flux(i, j, k).zero();
-        for (auto &z : this->side(1, 0, i, j, k)) {
-            Sfrac -= z.Sfrac;
-            this->y_flux(i, j, k).add((*static_cast<scene_object<nc> *>(z.other))(z.ri, z.rj, z.rk), (*this)(i, j, k), n, z.Sfrac, this->gas(), this->g());
-        }
-        if (Sfrac > tol)
-            this->y_flux(i, j, k).add_reflect((*this)(i, j, k), false, n, Sfrac, this->gas(), this->g());
-
-        j = this->ny;
-        Sfrac = 1;
-        this->y_flux(i, j, k).zero();
-        for (auto &z : this->side(1, 1, i, j, k)) {
-            Sfrac -= z.Sfrac;
-            this->y_flux(i, j, k).add((*this)(i, j-1, k), (*static_cast<scene_object<nc> *>(z.other))(z.ri, z.rj, z.rk), n, z.Sfrac, this->gas(), this->g());
-        }
-        if (Sfrac > tol)
-            this->y_flux(i, j, k).add_reflect((*this)(i, j-1, k), true, n, Sfrac, this->gas(), this->g());
-    }
-    if (dir == 2) {
-        int i = 0;
-        int j = 0;
-
-        vec n(0, 0, 1);
-        double Sfrac = 1;
-        int k = 0;
-
-        this->z_flux(i, j, k).zero();
-        for (auto &z : this->side(2, 0, i, j, k)) {
-            Sfrac -= z.Sfrac;
-            this->z_flux(i, j, k).add((*static_cast<scene_object<nc> *>(z.other))(z.ri, z.rj, z.rk), (*this)(i, j, k), n, z.Sfrac, this->gas(), this->g());
-        }
-        if (Sfrac > tol)
-            this->z_flux(i, j, k).add_reflect((*this)(i, j, k), false, n, Sfrac, this->gas(), this->g());
-
-        k = this->nz;
-        Sfrac = 1;
-        this->z_flux(i, j, k).zero();
-        for (auto &z : this->side(2, 1, i, j, k)) {
-            Sfrac -= z.Sfrac;
-            this->z_flux(i, j, k).add((*this)(i, j, k-1), (*static_cast<scene_object<nc> *>(z.other))(z.ri, z.rj, z.rk), n, z.Sfrac, this->gas(), this->g());
-        }
-        if (Sfrac > tol)
-            this->z_flux(i, j, k).add_reflect((*this)(i, j, k-1), true, n, Sfrac, this->gas(), this->g());
-    }
 }
 
 template<int nc>
 double pipe<nc>::get_max_dt() const {
     double maxv = 0;
     double hdir = this->h(dir);
-    if (dir == 0) {
-        for (int i = 0; i <= this->nx; i++) {
-            double v = this->x_flux(i, 0, 0).vmax;
-            if (v > maxv)
-                maxv = v;
-        }
-    }
-    if (dir == 1) {
-        for (int j = 0; j <= this->ny; j++) {
-            double v = this->y_flux(0, j, 0).vmax;
-            if (v > maxv)
-                maxv = v;
-        }
-    }
-    if (dir == 2) {
-        for (int k = 0; k <= this->nz; k++) {
-            double v = this->z_flux(0, 0, k).vmax;
-            if (v > maxv)
-                maxv = v;
-        }
-    }
+
+	for (int i = 0; i <= this->n(dir); i++) {
+		double v = this->flux_dir(dir, i).vmax;
+		if (v > maxv)
+			maxv = v;
+	}
+
     return hdir / maxv;
 }
 
@@ -125,9 +59,9 @@ void pipe<nc>::integrate(const double dt) {
     for (int i = 0; i < this->nx; i++)
         for (int j = 0; j < this->ny; j++)
             for (int k = 0; k < this->nz; k++) {
-                if (dir == 0) integrate((*this)(i, j, k), this->x_flux(i, j, k), this->x_flux(i+1, j, k), this->h.x, dt);
-                if (dir == 1) integrate((*this)(i, j, k), this->y_flux(i, j, k), this->y_flux(i, j+1, k), this->h.y, dt);
-                if (dir == 2) integrate((*this)(i, j, k), this->z_flux(i, j, k), this->z_flux(i, j, k+1), this->h.z, dt);
+                if (dir == dir::X) integrate((*this)(i, j, k), this->x_flux(i, j, k), this->x_flux(i+1, j, k), this->h.x, dt);
+                if (dir == dir::Y) integrate((*this)(i, j, k), this->y_flux(i, j, k), this->y_flux(i, j+1, k), this->h.y, dt);
+                if (dir == dir::Z) integrate((*this)(i, j, k), this->z_flux(i, j, k), this->z_flux(i, j, k+1), this->h.z, dt);
             }
 }
 

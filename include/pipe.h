@@ -5,26 +5,18 @@
 
 namespace objects {
 
-inline int cdir_to_dir(char cdir) {
-    if (cdir == 'x' || cdir == 'X')
-        return 0;
-    if (cdir == 'y' || cdir == 'Y')
-        return 1;
-    return 2;
-}
-
 template<int nc>
 struct pipe : public scene_object<nc> {
-    int dir;
+	dir::Direction dir;
     double surface, perimeter;
     double friction_coeff;
 
     pipe(int n, char cdir, const vec &ll, const vec &ur, const std::string &id, double friction_coeff = 0)
         : scene_object<nc>(
-            cdir_to_dir(cdir) == 0 ? n : 1,
-            cdir_to_dir(cdir) == 1 ? n : 1,
-            cdir_to_dir(cdir) == 2 ? n : 1, ll, ur, id),
-        dir(cdir_to_dir(cdir)), friction_coeff(friction_coeff)
+            dir::from_char(cdir) == dir::X ? n : 1,
+            dir::from_char(cdir) == dir::Y ? n : 1,
+            dir::from_char(cdir) == dir::Z ? n : 1, ll, ur, id),
+        dir(dir::from_char(cdir)), friction_coeff(friction_coeff)
     {
         for (int d = 0; d < 3; d++)
             for (int s = 0; s < 2; s++)

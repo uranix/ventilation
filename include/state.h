@@ -39,6 +39,12 @@ struct state {
         return sum;
     }
 
+	void fractions(double theta[]) const {
+		double dens = density();
+		for (int i = 0; i < nc; i++)
+			theta[i] = rho[i] / dens;
+	}
+
     vec velocity() const {
         double r = density();
         return rhou / r;

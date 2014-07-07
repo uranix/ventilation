@@ -16,8 +16,9 @@
 %include "std_vector.i"
 
 %ignore operator <<(std::ostream &, const vec &);
-%ignore operator *(double , const vec &);
-%ignore vec::operator()(int) const;
+%ignore operator *(double, const vec &);
+%ignore DirectionIterator;
+%ignore vec::operator()(dir::Direction) const;
 
 %include "vec.h"
 
