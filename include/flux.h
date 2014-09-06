@@ -12,6 +12,8 @@ struct avg_params {
     double solve(const avg_params &left, const avg_params &right, const vec &norm);
     template<int nc>
     void reconstruct(const state<nc> &state, const gasinfo<nc> &gas, const vec &gh, const vec &norm) {
+        (void)gh;
+        (void)norm;
         density = state.density();
         velocity = state.velocity();
         specific_energy = state.specific_energy();

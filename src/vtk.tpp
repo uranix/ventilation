@@ -1,12 +1,13 @@
 template<int nc>
 template<typename T>
 void scene_object<nc>::put(std::fstream &f, T value) const {
-    char buf[sizeof(T)];
-    *reinterpret_cast<T *>(&buf[0]) = value;
-    for (int s = 0; s < sizeof(T) / 2; s++) {
-        std::swap(buf[s], buf[sizeof(T) - 1 - s]);
-    }
-    f.write(buf, sizeof(T));
+    union {
+        char buf[sizeof(T)];
+        T val;
+    } helper;
+    helper.val = value;
+    std::reverse(helper.buf, helper.buf + sizeof(T));
+    f.write(helper.buf, sizeof(T));
 }
 
 template<int nc>

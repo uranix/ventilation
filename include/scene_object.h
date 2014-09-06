@@ -6,7 +6,9 @@
 #include "sloped_state.h"
 #include "flux.h"
 
+#include <iostream>
 #include <fstream>
+#include <algorithm>
 
 template<int nc>
 struct functor {
@@ -27,11 +29,15 @@ struct scene_object : public box {
     state<nc> *_slopes[3];
     state<nc> *_sources;
     flux<nc> *_fluxes[3];
-    const solver<nc> *solver;
+    const solver<nc> *slvr;
 
     scene_object(int nx, int ny, int nz, const vec &ll, const vec &ur, const std::string &id)
-        : box(nx, ny, nz, ll, ur, id), solver(nullptr)
+        : box(nx, ny, nz, ll, ur, id), slvr(nullptr)
     {
+        std::cout << "Using scene object `" << id << "' with dims = "
+            << "(" << nx << ", " << ny << ", " << nz << ") and h = "
+            << "(" << h.x << ", " << h.y << ", " << h.z << ")" << std::endl;
+
         _states = new state<nc>[nx * ny * nz];
         _oldstates = new state<nc>[nx * ny * nz];
         for (int i = 0; i < 3; i++) {
@@ -62,16 +68,16 @@ struct scene_object : public box {
         return ret;
     }
 
-    void set_solver(const ::solver<nc> *solver) {
-        this->solver = solver;
+    void set_solver(const ::solver<nc> *slvr) {
+        this->slvr = slvr;
     }
 
     const vec &g() const {
-        return solver->g();
+        return slvr->g();
     }
 
     const gasinfo<nc> &gas() const {
-        return solver->gas();
+        return slvr->gas();
     }
 
     virtual ~scene_object() {

@@ -10,33 +10,6 @@
 
 #include <fenv.h>
 
-struct AtmValues : public functor<2> {
-    const gasinfo<2> gas;
-    AtmValues(const gasinfo<2> &gas) : gas(gas) { }
-    void operator()(const vec &p, state<2> &st) const {
-        std::vector<double> r = {1.202, 0};
-        st.from_ruT(r, vec(0, 0, 0), 293, gas);
-    }
-};
-
-struct RoomValues : public functor<2> {
-    const gasinfo<2> gas;
-    RoomValues(const gasinfo<2> &gas) : gas(gas) { }
-    void operator()(const vec &p, state<2> &st) const {
-        std::vector<double> r = {1.23, 0};
-        st.from_ruT(r, vec(0, 0, 0), 293, gas);
-    }
-};
-
-struct PipeValues : public functor<2> {
-    const gasinfo<2> gas;
-    PipeValues(const gasinfo<2> &gas) : gas(gas) { }
-    void operator()(const vec &p, state<2> &st) const {
-        std::vector<double> r = {0.6863, 0.3};
-        st.from_ruT(r, vec(0, 0, 0), 293, gas);
-    }
-};
-
 typedef objects::atm<2> Atm;
 typedef objects::pipe<2> Pipe;
 typedef objects::room<2> Room;
@@ -44,11 +17,41 @@ typedef objects::fan<2> Fan;
 typedef objects::scene_object<2> Object;
 typedef solver<2> Solver;
 typedef tracer Tracer;
+typedef functor<2> Functor;
+typedef gasinfo<2> GasInfo;
+typedef state<2> State;
+
+struct AtmValues : public Functor {
+    const GasInfo gas;
+    AtmValues(const GasInfo &gas) : gas(gas) { }
+    void operator()(const vec &, State &st) const {
+        std::vector<double> r = {1.202, 0};
+        st.from_ruT(r, vec(0, 0, 0), 293, gas);
+    }
+};
+
+struct RoomValues : public Functor {
+    const GasInfo gas;
+    RoomValues(const GasInfo &gas) : gas(gas) { }
+    void operator()(const vec &, State &st) const {
+        std::vector<double> r = {1.23, 0};
+        st.from_ruT(r, vec(0, 0, 0), 293, gas);
+    }
+};
+
+struct PipeValues : public Functor {
+    const GasInfo gas;
+    PipeValues(const GasInfo &gas) : gas(gas) { }
+    void operator()(const vec &, State &st) const {
+        std::vector<double> r = {0.6863, 0.3};
+        st.from_ruT(r, vec(0, 0, 0), 293, gas);
+    }
+};
 
 int main() {
     feenableexcept(FE_INVALID | FE_DIVBYZERO | FE_OVERFLOW);
 
-    gasinfo<2> gas;
+    GasInfo gas;
     gas.set(0, 29, 1.40, 1.78e-5);
     gas.set(1, 16, 1.33, 1e-5);
 
@@ -108,7 +111,7 @@ int main() {
         &bra7, &pipe8, &corn9, &pipe10, &atm11,
         &pipe12, &dend13, &pipe14, &corn15, &vmp16};
 
-    Tracer tr({vec(0, 200, 0), vec(0, 0, 0), vec(400, 0, 0), vec(400, 0, 200)}, "line", 0.1);
+    Tracer tr({vec(0, 200, 0), vec(0, 0, 0), vec(400, 0, 0), vec(400, 0, 200)}, "line", 5);
 
     std::vector<Tracer *> tracers = {&tr};
 

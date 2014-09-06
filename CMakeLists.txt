@@ -4,7 +4,7 @@ project(Ventilation)
 
 set(vent_SOURCES src/flux.cpp src/contact.cpp)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ferror-limit=5 -std=c++11 -Wall -Wno-deprecated-register")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fmax-errors=5 -std=c++11 -Wall -Werror -Wextra")
 
 find_package(SWIG REQUIRED)
 include(${SWIG_USE_FILE})

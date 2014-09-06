@@ -1,3 +1,4 @@
+/* vim: set ft=cpp: */
 %module(directors="1") vent
 %{
 #include "vec.h"
