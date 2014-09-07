@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.0)
 
 project(Ventilation)
 
@@ -6,7 +6,7 @@ set(vent_SOURCES src/flux.cpp src/contact.cpp)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fmax-errors=5 -std=c++11 -Wall -Werror -Wextra")
 
-find_package(SWIG REQUIRED)
+find_package(SWIG 3.0 REQUIRED)
 include(${SWIG_USE_FILE})
 
 find_package(PythonLibs)

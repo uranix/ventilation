@@ -18,7 +18,8 @@
 
 %ignore operator <<(std::ostream &, const vec &);
 %ignore operator *(double, const vec &);
-%ignore DirectionIterator;
+%ignore dir::DirectionIterator;
+%ignore dir::DirectionIterator::operator++();
 %ignore vec::operator()(dir::Direction) const;
 
 %include "vec.h"
