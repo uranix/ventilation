@@ -20,10 +20,12 @@ double avg_params::solve(const avg_params &left, const avg_params &right, const 
     n[1] = norm.y;
     n[2] = norm.z;
 
+    double tol = 1e-6;
+    const int maxit = 5;
     euler<double, 3> solver(
         left.density, v1, left.pressure, 1 + left.pressure / left.density / left.specific_energy,
         right.density, v2, right.pressure, 1 + right.pressure / right.density / right.specific_energy,
-        n);
+        n, tol, maxit);
 
     double r, p, eps, xi = 0;
     solver.get(1, &xi, &r, &v1, &eps, &p);

@@ -8,6 +8,7 @@
 #include "pipe.h"
 #include "atm.h"
 #include "fan.h"
+#include "pulse.h"
 #include "solver.h"
 %}
 
@@ -78,12 +79,17 @@ namespace objects {
     struct atm : public scene_object<nc> {
         atm(const vec &ll, const vec &ur, const std::string &id);
     };
+    template<int nc>
+    struct pulse : public scene_object<nc> {
+        pulse(const vec &ll, const vec &ur, const std::string &id, const double drE, const double freq);
+    };
 }
 %template(SceneObject) objects::scene_object<NC>;
 %template(Room) objects::room<NC>;
 %template(Pipe) objects::pipe<NC>;
 %template(Fan) objects::fan<NC>;
 %template(Atm) objects::atm<NC>;
+%template(Pulse) objects::pulse<NC>;
 %template(Chain) std::vector<vec>;
 
 %rename(Tracer) tracer;
@@ -105,6 +111,7 @@ struct solver {
     void set_gravity(const vec &g);
     void integrate();
     void save(const std::string &);
+    std::string version() const;
     double time() const;
     double timestep() const;
     int step() const;

@@ -48,29 +48,37 @@ public:
         return C * dtmin;
     }
     void integrate() {
+#if SECOND_ORDER
         for (auto p : scene)
             p->copy_explicit();
+#endif
 
         compute_fluxes();
         dt = estimate_timestep();
         for (auto p : scene) {
-            p->integrate_rhs(dt);
-            p->integrate(dt);
+            p->integrate_rhs(t, dt);
+            p->integrate(t, dt);
             p->limit_slopes();
         }
+        t += dt;
 
+#if SECOND_ORDER
         compute_fluxes();
         for (auto p : scene) {
-            p->integrate_rhs(dt);
-            p->integrate(dt);
+            p->integrate_rhs(t, dt);
+            p->integrate(t, dt);
             p->limit_slopes();
         }
 
         for (auto p : scene)
             p->average_with_explicit();
+#endif
 
-        t += dt;
         _step++;
+    }
+    std::string version() const {
+        #include "GitVersion.h"
+        return VERSION;
     }
     void save(const std::string &prefix) {
         for (auto p : scene)

@@ -33,9 +33,9 @@ struct pipe : public scene_object<nc> {
 
     virtual double get_max_dt() const;
 
-    virtual void integrate(const double dt);
-    virtual void integrate(sloped_state<nc> cell, const flux<nc> &left, const flux<nc> &right, dir::Direction dir, double h, double dt);
-    virtual void integrate_rhs(sloped_state<nc> cell, const state<nc> &source, const double dt);
+    virtual void integrate(const double t, const double dt) override ;
+    virtual void integrate(sloped_state<nc> cell, const flux<nc> &left, const flux<nc> &right, dir::Direction dir, double h, const double t, double dt) override;
+    virtual void integrate_rhs(sloped_state<nc> cell, const state<nc> &source, const double t, const double dt) override;
 };
 
 #include "../src/pipe.tpp"

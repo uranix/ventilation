@@ -151,40 +151,45 @@ double scene_object<nc>::get_max_dt() const {
 }
 
 template<int nc>
-void scene_object<nc>::integrate(sloped_state<nc> cell, const flux<nc> &left, const flux<nc> &right, dir::Direction dir, double h, const double dt) {
+void scene_object<nc>::integrate(sloped_state<nc> cell, const flux<nc> &left, const flux<nc> &right, dir::Direction dir, double h, const double, const double dt) {
     for (int i = 0; i < nc; i++)
         cell.avg.rho[i] -= dt * (right.fdens[i] - left.fdens[i]) / h;
     cell.avg.rhou -= dt * (right.fmom - left.fmom) / h;
     cell.avg.rhoE -= dt * (right.fener - left.fener) / h;
+    (void)dir;
 
+#if SECOND_ORDER
     vec v = cell.avg.velocity();
     double p = gas().pressure(cell.avg);
     for (int i = 0; i < nc; i++)
         cell.slope(dir).rho[i] -= 2 * dt * (right.fdens[i] + left.fdens[i] - 2 * cell.avg.rho[i] * v(dir)) / h;
     cell.slope(dir).rhou -= 2 * dt * (right.fmom + left.fmom - 2 * (cell.avg.rhou * v(dir) + p * dir::to_vec(dir))) / h;
     cell.slope(dir).rhoE -= 2 * dt * (right.fener + left.fener - 2 * (cell.avg.rhoE + p) * v(dir)) / h;
+#endif
 }
 
 template<int nc>
-void scene_object<nc>::integrate(const double dt) {
+void scene_object<nc>::integrate(const double t, const double dt) {
     for (int i = 0; i < nx; i++)
         for (int j = 0; j < ny; j++)
             for (int k = 0; k < nz; k++) {
-                integrate(ref(i, j, k), x_flux(i, j, k), x_flux(i+1, j, k), dir::X, h.x, dt);
-                integrate(ref(i, j, k), y_flux(i, j, k), y_flux(i, j+1, k), dir::Y, h.y, dt);
-                integrate(ref(i, j, k), z_flux(i, j, k), z_flux(i, j, k+1), dir::Z, h.z, dt);
+                integrate(ref(i, j, k), x_flux(i, j, k), x_flux(i+1, j, k), dir::X, h.x, t, dt);
+                integrate(ref(i, j, k), y_flux(i, j, k), y_flux(i, j+1, k), dir::Y, h.y, t, dt);
+                integrate(ref(i, j, k), z_flux(i, j, k), z_flux(i, j, k+1), dir::Z, h.z, t, dt);
             }
 }
 
 template<int nc>
-void scene_object<nc>::integrate_rhs(sloped_state<nc> cell, const state<nc> &source, const double dt) {
+void scene_object<nc>::integrate_rhs(sloped_state<nc> cell, const state<nc> &source, const double, const double dt) {
     cell.avg.rhoE += dt * g().dot(cell.avg.rhou);
     cell.avg.rhou += dt * cell.avg.density() * g();
 
+#if SECOND_ORDER
     for (auto dir : dir::DIRECTIONS) {
         cell.slope(dir).rhoE += dt * g().dot(cell.slope(dir).rhou);
         cell.slope(dir).rhou += dt * cell.slope(dir).density() * g();
     }
+#endif
 
     for (int i = 0; i < nc; i++)
         cell.avg.rho[i] += dt * source.rho[i];
@@ -193,11 +198,11 @@ void scene_object<nc>::integrate_rhs(sloped_state<nc> cell, const state<nc> &sou
 }
 
 template<int nc>
-void scene_object<nc>::integrate_rhs(const double dt) {
+void scene_object<nc>::integrate_rhs(const double t, const double dt) {
     for (int i = 0; i < nx; i++)
         for (int j = 0; j < ny; j++)
             for (int k = 0; k < nz; k++)
-                integrate_rhs(ref(i, j, k), this->source(i, j, k), dt);
+                integrate_rhs(ref(i, j, k), this->source(i, j, k), t, dt);
 }
 
 double minmod(double a, double b) {
@@ -209,7 +214,8 @@ double minmod(double a, double b) {
 }
 
 double minmod3(double a, double b, double c) {
-    return minmod(a, minmod(b, c));
+    const double theta = 1;
+    return minmod(a, 0.5 * theta * minmod(b, c));
 }
 
 template<int nc>
@@ -223,6 +229,7 @@ void limit(state<nc> &slope, const state<nc> &lf, const state<nc> &ce, const sta
 
 template<int nc>
 void scene_object<nc>::limit_slopes() {
+#if SECOND_ORDER
     for (int j = 0; j < ny; j++)
         for (int k = 0; k < nz; k++) {
             ref(0, j, k).sx.zero();
@@ -250,6 +257,7 @@ void scene_object<nc>::limit_slopes() {
         for (int j = 0; j < ny; j++)
             for (int k = 1; k < nz - 1; k++)
                 limit(ref(i, j, k).sz, val(i, j, k-1).ce(), val(i, j, k).ce(), val(i, j, k+1).ce());
+#endif
 }
 
 template<int nc>

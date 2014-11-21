@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <iostream>
+#include <cstdlib>
 
 double intersect_rect(dir::Direction d, const vec &all, const vec &aur,
     const vec &bll, const vec &bur, double tol)
@@ -44,12 +45,14 @@ void connect(box &a, box &b) {
     tol *= unit_length;
 
     bool found = false;
+    bool ok = false;
 
     for (auto d : dir::DIRECTIONS)
         for (int s = 0; s < 2; s++) {
             bool check = try_side(d, s, a, b, tol) > 0;
             if (check && found) {
                 std::cerr << "Multiple contacts! This should not have happened." << std::endl;
+                abort();
                 return;
             }
             found |= check;
@@ -100,5 +103,11 @@ void connect(box &a, box &b) {
                 }
             }
 #undef LOOP
+            ok = true;
         }
+    if (!ok) {
+        std::cerr << "No contact between " << a.id << " and " << b.id << " found!" << std::endl;
+        abort();
+        return;
+    }
 }

@@ -23,10 +23,12 @@ namespace objects {
 
 template<int nc>
 struct scene_object : public box {
-    state<nc> *_oldstates;
     state<nc> *_states;
-    state<nc> *_oldslopes[3];
+#if SECOND_ORDER
+    state<nc> *_oldstates;
     state<nc> *_slopes[3];
+    state<nc> *_oldslopes[3];
+#endif
     state<nc> *_sources;
     flux<nc> *_fluxes[3];
     const solver<nc> *slvr;
@@ -39,11 +41,13 @@ struct scene_object : public box {
             << "(" << h.x << ", " << h.y << ", " << h.z << ")" << std::endl;
 
         _states = new state<nc>[nx * ny * nz];
+#if SECOND_ORDER
         _oldstates = new state<nc>[nx * ny * nz];
         for (int i = 0; i < 3; i++) {
             _slopes[i] = new state<nc>[nx * ny * nz];
             _oldslopes[i] = new state<nc>[nx * ny * nz];
         }
+#endif
         _sources = new state<nc>[nx * ny * nz];
 
         _fluxes[0] = new flux<nc>[(nx + 1) * ny * nz];
@@ -57,7 +61,7 @@ struct scene_object : public box {
         locate_point(p, i, j, k, ofs);
         const const_sloped_state<nc> &v = val(i, j, k);
         state<nc> ret = v.ce();
-#if RECONSTRUCTED_OUTPUT
+#if RECONSTRUCTED_OUTPUT && SECOND_ORDER
         for (auto d : dir::DIRECTIONS) {
             for (int i = 0; i < nc; i++)
                 ret.rho[i] += ofs(d) * v.slope(d).rho[i];
@@ -82,14 +86,17 @@ struct scene_object : public box {
 
     virtual ~scene_object() {
         delete[] _states;
-        delete[] _oldstates;
         delete[] _sources;
+        for (int i = 0; i < 3; i++)
+            delete[] _fluxes[i];
 
+#if SECOND_ORDER
+        delete[] _oldstates;
         for (int i = 0; i < 3; i++) {
             delete[] _slopes[i];
             delete[] _oldslopes[i];
-            delete[] _fluxes[i];
         }
+#endif
     }
 
     void fill(const functor<nc> &f) {
@@ -101,6 +108,7 @@ struct scene_object : public box {
                 }
     }
 
+#if SECOND_ORDER
     void copy_explicit() {
         for (int i = 0; i < nx * ny * nz; i++) {
             _oldstates[i] = _states[i];
@@ -109,6 +117,7 @@ struct scene_object : public box {
             _oldslopes[2][i] = _slopes[2][i];
         }
     }
+#endif
 
     void average(const state<nc> &u0, state<nc> &u2) {
         for (int i = 0; i < nc; i++)
@@ -117,6 +126,7 @@ struct scene_object : public box {
         u2.rhoE = .5 * (u0.rhoE + u2.rhoE);
     }
 
+#if SECOND_ORDER
     void average_with_explicit() {
         for (int i = 0; i < nx * ny * nz; i++) {
             average(_oldstates[i], _states[i]);
@@ -125,6 +135,7 @@ struct scene_object : public box {
             average(_oldslopes[2][i], _slopes[2][i]);
         }
     }
+#endif
 
     void limit_slopes();
 
@@ -142,10 +153,12 @@ struct scene_object : public box {
 
         int idx = i + (j + k * ny) * nx;
         return const_sloped_state<nc>(
-                    _states[idx],
-                    _slopes[0][idx],
-                    _slopes[1][idx],
-                    _slopes[2][idx]
+                    _states[idx]
+#if SECOND_ORDER
+                    ,_slopes[0][idx]
+                    ,_slopes[1][idx]
+                    ,_slopes[2][idx]
+#endif
                 );
     }
 
@@ -156,10 +169,12 @@ struct scene_object : public box {
 
         int idx = i + (j + k * ny) * nx;
         return sloped_state<nc>(
-                    _states[idx],
-                    _slopes[0][idx],
-                    _slopes[1][idx],
-                    _slopes[2][idx]
+                    _states[idx]
+#if SECOND_ORDER
+                    ,_slopes[0][idx]
+                    ,_slopes[1][idx]
+                    ,_slopes[2][idx]
+#endif
                 );
     }
 
@@ -184,10 +199,10 @@ struct scene_object : public box {
     virtual double get_max_dt() const;
 
     virtual void integrate(sloped_state<nc> cell, const flux<nc> &left, const flux<nc> &right,
-            dir::Direction dir, double h, const double dt);
-    virtual void integrate_rhs(sloped_state<nc> cell, const state<nc> &source, const double dt);
-    virtual void integrate(const double dt);
-    virtual void integrate_rhs(const double dt);
+            dir::Direction dir, double h, const double t, const double dt);
+    virtual void integrate_rhs(sloped_state<nc> cell, const state<nc> &source, const double t, const double dt);
+    virtual void integrate(const double t, const double dt);
+    virtual void integrate_rhs(const double t, const double dt);
 
     template<typename T>
     void put(std::fstream &f, T value) const;

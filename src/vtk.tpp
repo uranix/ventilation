@@ -12,6 +12,7 @@ void scene_object<nc>::put(std::fstream &f, T value) const {
 
 template<int nc>
 void scene_object<nc>::save(const std::string &prefix, const int step) const {
+    #include "GitVersion.h"
     std::string fn(prefix + id);
     fn += ".";
     fn += std::to_string(step);
@@ -25,7 +26,7 @@ void scene_object<nc>::save(const std::string &prefix, const int step) const {
     }
 
     f << "# vtk DataFile Version 3.0\n";
-    f << "Block dump\n";
+    f << "Block dump. " << VERSION << "\n";
     f << "BINARY\n";
     f << "DATASET RECTILINEAR_GRID\n";
     f << "DIMENSIONS " << nx + 1 << " " << ny + 1 << " " << nz + 1;
