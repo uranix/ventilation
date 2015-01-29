@@ -44,6 +44,7 @@ public:
         for (int i = 0; i < nc; i++)
             f << "rho" << i << ",";
         f << "ux,uy,uz,v,p,eps,T" << std::endl;
+        f.precision(15);
 
         size_t ps = path.size();
         for (size_t i = 0; i < ps; i++) {

@@ -5,6 +5,9 @@
 #include "tracer.h"
 
 #include <vector>
+#if FP_TRAP
+# include <fenv.h>
+#endif
 
 template<int nc>
 class solver {
@@ -22,6 +25,9 @@ public:
             const std::vector<tracer *> &tracers, const double C)
         : scene(scene), tracers(tracers), C(C)
     {
+#if FP_TRAP
+        feenableexcept(FE_INVALID | FE_OVERFLOW);
+#endif
         for (auto p : scene)
             p->set_solver(this);
         t = 0;

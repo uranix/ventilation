@@ -9,7 +9,6 @@ struct avg_params {
     double specific_energy;
     double pressure;
 
-    double solve(const avg_params &left, const avg_params &right, const vec &norm);
     template<int nc>
     void reconstruct(const state<nc> &state, const gasinfo<nc> &gas, const vec &gh, const vec &norm) {
         (void)gh;
@@ -19,6 +18,14 @@ struct avg_params {
         specific_energy = state.specific_energy();
         pressure = gas.pressure(state);
     }
+};
+
+struct avg_flux {
+    double fden;
+    vec fmom;
+    double fener;
+
+    double solve(const avg_params &left, const avg_params &right, const vec &norm);
 };
 
 template<int nc>
@@ -42,21 +49,21 @@ struct flux {
     }
 
     void add_kernel(const double tl[], const double tr[], const avg_params &la, const avg_params &ra, const vec &norm, const double Sfrac) {
-        avg_params iface;
+        avg_flux iface;
 
         double _vmax = iface.solve(la, ra, norm);
         if (_vmax > vmax)
             vmax = _vmax;
 
-        double vn = iface.velocity.dot(norm);
+        double rhovn = iface.fden;
 
-        const double *theta = vn > 0 ? tl : tr;
+        const double *theta = rhovn > 0 ? tl : tr;
 
         for (int i = 0; i < nc; i++)
-            fdens[i] += Sfrac * iface.density * theta[i] * vn;
+            fdens[i] += Sfrac * iface.fden * theta[i];
 
-        fmom += Sfrac * (iface.density * vn * iface.velocity + iface.pressure * norm);
-        fener += Sfrac * vn * (iface.density * (iface.specific_energy + .5 * iface.velocity.norm2()) + iface.pressure);
+        fmom += Sfrac * iface.fmom;
+        fener += Sfrac * iface.fener;
     }
 
     void add(const state<nc> &left, const state<nc> &right, const vec &norm, const double Sfrac, const gasinfo<nc> &gas, const vec &gh) {

@@ -229,7 +229,7 @@ void limit(state<nc> &slope, const state<nc> &lf, const state<nc> &ce, const sta
 
 template<int nc>
 void scene_object<nc>::limit_slopes() {
-#if SECOND_ORDER
+#if SECOND_ORDER && USE_LIMITERS
     for (int j = 0; j < ny; j++)
         for (int k = 0; k < nz; k++) {
             ref(0, j, k).sx.zero();

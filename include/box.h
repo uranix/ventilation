@@ -6,6 +6,7 @@
 #include <string>
 #include <cassert>
 #include <vector>
+#include <iostream>
 
 struct box {
     const int nx, ny, nz;
@@ -44,9 +45,10 @@ struct box {
     {
         h = (ur - ll) / vec(nx, ny, nz);
 
-        assert(h.x > 0);
-        assert(h.y > 0);
-        assert(h.z > 0);
+        if (h.x <= 0 || h.y <= 0 || h.z <= 0) {
+            std::cerr << "Object " << id << " has a negative dimension!" << std::endl;
+            abort();
+        }
 
         for (int d = 0; d < 3; d++)
             for (int s = 0; s < 2; s++)
