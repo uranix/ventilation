@@ -29,9 +29,9 @@ struct pipe : public scene_object<nc> {
 
     virtual ~pipe() { }
 
-    virtual void compute_outer_fluxes();
+    virtual void compute_outer_fluxes() override;
 
-    virtual double get_max_dt() const;
+    virtual double get_max_dt() const override;
 
     virtual void integrate(const double t, const double dt) override ;
     virtual void integrate(sloped_state<nc> cell, const flux<nc> &left, const flux<nc> &right, dir::Direction dir, double h, const double t, double dt) override;

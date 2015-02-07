@@ -13,14 +13,6 @@ set(vent_SOURCES src/flux.cpp src/contact.cpp)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fmax-errors=5 -std=c++11 -Wall -Werror -Wextra -g")
 
-if(NOT DEFINED SECOND_ORDER)
-	set(SECOND_ORDER FALSE)
-endif()
-
-if(NOT DEFINED RECONSTRUCT)
-	set(RECONSTRUCT "${SECOND_ORDER}")
-endif()
-
 if(NOT DEFINED PRECISE_RIEMANN)
 	set(PRECISE_RIEMANN FALSE)
 endif()
@@ -29,28 +21,9 @@ if(NOT DEFINED FP_TRAP)
 	set(FP_TRAP TRUE)
 endif()
 
-if(NOT DEFINED LIMITERS)
-	set(LIMITERS "${SECOND_ORDER}")
-endif()
-
 message(STATUS "Configuerd with following params")
-message(STATUS "Use output reconstruction (-DRECONSTRUCT): ${RECONSTRUCT}")
-message(STATUS "Use second order method (-DSECOND_ORDER): ${SECOND_ORDER}")
-message(STATUS "Use slope limiters (-DLIMITERS): ${LIMITERS}")
 message(STATUS "Use precise Riemann solver (-DPRECISE_RIEMANN): ${PRECISE_RIEMANN}")
 message(STATUS "Use floating point traps (-DFP_TRAP): ${FP_TRAP}")
-
-if (${RECONSTRUCT})
-	add_definitions("-DRECONSTRUCTED_OUTPUT=1")
-else()
-	add_definitions("-DRECONSTRUCTED_OUTPUT=0")
-endif()
-
-if (${SECOND_ORDER})
-	add_definitions("-DSECOND_ORDER=1")
-else()
-	add_definitions("-DSECOND_ORDER=0")
-endif()
 
 if (${PRECISE_RIEMANN})
 	add_definitions("-DPRECISE_RIEMANN=1")
@@ -62,12 +35,6 @@ if (${FP_TRAP})
 	add_definitions("-DFP_TRAP=1")
 else()
 	add_definitions("-DFP_TRAP=0")
-endif()
-
-if (${LIMITERS})
-	add_definitions("-DUSE_LIMITERS=1")
-else()
-	add_definitions("-DUSE_LIMITERS=0")
 endif()
 
 find_package(SWIG 3.0 REQUIRED)

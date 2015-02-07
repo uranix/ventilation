@@ -16,9 +16,9 @@ struct pulse : public scene_object<nc> {
         rhoE0 = -1;
     }
 
-    virtual void compute_inner_fluxes() { }
-    virtual void compute_outer_fluxes() { }
-    virtual double get_max_dt() const { return .2 / freq; }
+    virtual void compute_inner_fluxes() override { }
+    virtual void compute_outer_fluxes() override { }
+    virtual double get_max_dt() const override { return .2 / freq; }
     virtual void integrate(const double t, const double) override {
         if (rhoE0 < 0)
             rhoE0 = this->val(0, 0, 0).avg.rhoE;

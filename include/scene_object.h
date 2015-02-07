@@ -24,11 +24,6 @@ namespace objects {
 template<int nc>
 struct scene_object : public box {
     state<nc> *_states;
-#if SECOND_ORDER
-    state<nc> *_oldstates;
-    state<nc> *_slopes[3];
-    state<nc> *_oldslopes[3];
-#endif
     state<nc> *_sources;
     flux<nc> *_fluxes[3];
     const solver<nc> *slvr;
@@ -41,13 +36,6 @@ struct scene_object : public box {
             << "(" << h.x << ", " << h.y << ", " << h.z << ")" << std::endl;
 
         _states = new state<nc>[nx * ny * nz];
-#if SECOND_ORDER
-        _oldstates = new state<nc>[nx * ny * nz];
-        for (int i = 0; i < 3; i++) {
-            _slopes[i] = new state<nc>[nx * ny * nz];
-            _oldslopes[i] = new state<nc>[nx * ny * nz];
-        }
-#endif
         _sources = new state<nc>[nx * ny * nz];
 
         _fluxes[0] = new flux<nc>[(nx + 1) * ny * nz];
@@ -61,14 +49,6 @@ struct scene_object : public box {
         locate_point(p, i, j, k, ofs);
         const const_sloped_state<nc> &v = val(i, j, k);
         state<nc> ret = v.ce();
-#if RECONSTRUCTED_OUTPUT && SECOND_ORDER
-        for (auto d : dir::DIRECTIONS) {
-            for (int i = 0; i < nc; i++)
-                ret.rho[i] += ofs(d) * v.slope(d).rho[i];
-            ret.rhou += ofs(d) * v.slope(d).rhou;
-            ret.rhoE += ofs(d) * v.slope(d).rhoE;
-        }
-#endif
         return ret;
     }
 
@@ -89,14 +69,6 @@ struct scene_object : public box {
         delete[] _sources;
         for (int i = 0; i < 3; i++)
             delete[] _fluxes[i];
-
-#if SECOND_ORDER
-        delete[] _oldstates;
-        for (int i = 0; i < 3; i++) {
-            delete[] _slopes[i];
-            delete[] _oldslopes[i];
-        }
-#endif
     }
 
     void fill(const functor<nc> &f) {
@@ -108,36 +80,12 @@ struct scene_object : public box {
                 }
     }
 
-#if SECOND_ORDER
-    void copy_explicit() {
-        for (int i = 0; i < nx * ny * nz; i++) {
-            _oldstates[i] = _states[i];
-            _oldslopes[0][i] = _slopes[0][i];
-            _oldslopes[1][i] = _slopes[1][i];
-            _oldslopes[2][i] = _slopes[2][i];
-        }
-    }
-#endif
-
     void average(const state<nc> &u0, state<nc> &u2) {
         for (int i = 0; i < nc; i++)
             u2.rho[i] = .5 * (u0.rho[i] + u2.rho[i]);
         u2.rhou = .5 * (u0.rhou + u2.rhou);
         u2.rhoE = .5 * (u0.rhoE + u2.rhoE);
     }
-
-#if SECOND_ORDER
-    void average_with_explicit() {
-        for (int i = 0; i < nx * ny * nz; i++) {
-            average(_oldstates[i], _states[i]);
-            average(_oldslopes[0][i], _slopes[0][i]);
-            average(_oldslopes[1][i], _slopes[1][i]);
-            average(_oldslopes[2][i], _slopes[2][i]);
-        }
-    }
-#endif
-
-    void limit_slopes();
 
     void fill_sources(const functor<nc> &f) {
         for (int i = 0; i < nx; i++)
@@ -152,14 +100,7 @@ struct scene_object : public box {
         assert(k >= 0 && k < nz);
 
         int idx = i + (j + k * ny) * nx;
-        return const_sloped_state<nc>(
-                    _states[idx]
-#if SECOND_ORDER
-                    ,_slopes[0][idx]
-                    ,_slopes[1][idx]
-                    ,_slopes[2][idx]
-#endif
-                );
+        return const_sloped_state<nc>(_states[idx]);
     }
 
     sloped_state<nc> ref(int i, int j, int k) {
@@ -168,14 +109,7 @@ struct scene_object : public box {
         assert(k >= 0 && k < nz);
 
         int idx = i + (j + k * ny) * nx;
-        return sloped_state<nc>(
-                    _states[idx]
-#if SECOND_ORDER
-                    ,_slopes[0][idx]
-                    ,_slopes[1][idx]
-                    ,_slopes[2][idx]
-#endif
-                );
+        return sloped_state<nc>(_states[idx]);
     }
 
     const_sloped_state<nc> val(dir::Direction dir, int i) const {

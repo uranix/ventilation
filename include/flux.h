@@ -3,7 +3,10 @@
 
 #include "state.h"
 
-struct avg_params {
+/*
+ * Gravity compensation reconstruction. Doesn't work, stub.
+ * */
+struct rec_params {
     double density;
     vec velocity;
     double specific_energy;
@@ -20,12 +23,12 @@ struct avg_params {
     }
 };
 
-struct avg_flux {
+struct interface_flux {
     double fden;
     vec fmom;
     double fener;
 
-    double solve(const avg_params &left, const avg_params &right, const vec &norm);
+    void solve(const rec_params &left, const rec_params &right, const vec &norm);
 };
 
 template<int nc>
@@ -34,7 +37,7 @@ struct flux {
     vec fmom;
     double fener;
 
-    double vmax;
+    double amax;
 
     flux() {
         zero();
@@ -45,15 +48,15 @@ struct flux {
             fdens[i] = 0;
         fmom = vec(0);
         fener = 0;
-        vmax = 0;
+        amax = 0;
     }
 
-    void add_kernel(const double tl[], const double tr[], const avg_params &la, const avg_params &ra, const vec &norm, const double Sfrac) {
-        avg_flux iface;
+    void add_kernel(const double tl[], const double tr[], const rec_params &la, const rec_params &ra, const vec &norm, const double Sfrac) {
+        interface_flux iface;
 
-        double _vmax = iface.solve(la, ra, norm);
-        if (_vmax > vmax)
-            vmax = _vmax;
+        double _amax = iface.solve(la, ra, norm);
+        if (_amax > amax)
+            amax = _amax;
 
         double rhovn = iface.fden;
 
@@ -67,7 +70,7 @@ struct flux {
     }
 
     void add(const state<nc> &left, const state<nc> &right, const vec &norm, const double Sfrac, const gasinfo<nc> &gas, const vec &gh) {
-        avg_params la, ra;
+        rec_params la, ra;
         double tl[nc];
         double tr[nc];
 
@@ -81,7 +84,7 @@ struct flux {
     }
 
     void add_reflect(const state<nc> &inner, bool inner_is_left, const vec &norm, const double Sfrac, const gasinfo<nc> &gas, const vec &gh) {
-        avg_params la, ra;
+        rec_params la, ra;
         double th[nc];
 
         inner.fractions(th);

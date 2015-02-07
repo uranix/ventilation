@@ -7,7 +7,8 @@ void scene_object<nc>::compute_inner_fluxes() {
                 x_flux(i, j, k).zero();
                 x_flux(i, j, k).add(
                         val(i-1, j, k).template get<true >(dir::X),
-                        val(i  , j, k).template get<false>(dir::X), n, 1.0, gas(), g() * h.x);
+                        val(i  , j, k).template get<false>(dir::X),
+                        n, 1.0, gas(), g() * h.x);
             }
     for (int i = 0; i < nx; i++)
         for (int j = 1; j < ny; j++)
@@ -16,7 +17,8 @@ void scene_object<nc>::compute_inner_fluxes() {
                 y_flux(i, j, k).zero();
                 y_flux(i, j, k).add(
                         val(i, j-1, k).template get<true >(dir::Y),
-                        val(i, j  , k).template get<false>(dir::Y), n, 1.0, gas(), g() * h.y);
+                        val(i, j  , k).template get<false>(dir::Y),
+                        n, 1.0, gas(), g() * h.y);
             }
     for (int i = 0; i < nx; i++)
         for (int j = 0; j < ny; j++)
@@ -25,7 +27,8 @@ void scene_object<nc>::compute_inner_fluxes() {
                 z_flux(i, j, k).zero();
                 z_flux(i, j, k).add(
                         val(i, j, k-1).template get<true >(dir::Z),
-                        val(i, j, k  ).template get<false>(dir::Z), n, 1.0, gas(), g() * h.z);
+                        val(i, j, k  ).template get<false>(dir::Z),
+                        n, 1.0, gas(), g() * h.z);
             }
 }
 
@@ -125,25 +128,16 @@ void scene_object<nc>::compute_outer_fluxes() {
 
 template<int nc>
 double scene_object<nc>::get_max_dt() const {
-    double maxv = 0;
-    for (int i = 0; i <= nx; i++)
-        for (int j = 0; j < ny; j++)
-            for (int k = 0; k < nz; k++) {
-                double v = x_flux(i, j, k).vmax;
-                if (v > maxv)
-                    maxv = v;
-            }
-    for (int i = 0; i < nx; i++)
-        for (int j = 0; j <= ny; j++)
-            for (int k = 0; k < nz; k++) {
-                double v = y_flux(i, j, k).vmax;
-                if (v > maxv)
-                    maxv = v;
-            }
+    double cmax = 0;
+
+    double vxmax = 0;
+    double vymax = 0;
+    double vzmax = 0;
+
     for (int i = 0; i < nx; i++)
         for (int j = 0; j < ny; j++)
-            for (int k = 0; k <= nz; k++) {
-                double v = z_flux(i, j, k).vmax;
+            for (int k = 0; k < nz; k++) {
+                double v = val(i, j, k).;
                 if (v > maxv)
                     maxv = v;
             }
@@ -157,15 +151,6 @@ void scene_object<nc>::integrate(sloped_state<nc> cell, const flux<nc> &left, co
     cell.avg.rhou -= dt * (right.fmom - left.fmom) / h;
     cell.avg.rhoE -= dt * (right.fener - left.fener) / h;
     (void)dir;
-
-#if SECOND_ORDER
-    vec v = cell.avg.velocity();
-    double p = gas().pressure(cell.avg);
-    for (int i = 0; i < nc; i++)
-        cell.slope(dir).rho[i] -= 2 * dt * (right.fdens[i] + left.fdens[i] - 2 * cell.avg.rho[i] * v(dir)) / h;
-    cell.slope(dir).rhou -= 2 * dt * (right.fmom + left.fmom - 2 * (cell.avg.rhou * v(dir) + p * dir::to_vec(dir))) / h;
-    cell.slope(dir).rhoE -= 2 * dt * (right.fener + left.fener - 2 * (cell.avg.rhoE + p) * v(dir)) / h;
-#endif
 }
 
 template<int nc>
@@ -183,13 +168,6 @@ template<int nc>
 void scene_object<nc>::integrate_rhs(sloped_state<nc> cell, const state<nc> &source, const double, const double dt) {
     cell.avg.rhoE += dt * g().dot(cell.avg.rhou);
     cell.avg.rhou += dt * cell.avg.density() * g();
-
-#if SECOND_ORDER
-    for (auto dir : dir::DIRECTIONS) {
-        cell.slope(dir).rhoE += dt * g().dot(cell.slope(dir).rhou);
-        cell.slope(dir).rhou += dt * cell.slope(dir).density() * g();
-    }
-#endif
 
     for (int i = 0; i < nc; i++)
         cell.avg.rho[i] += dt * source.rho[i];
@@ -225,39 +203,6 @@ void limit(state<nc> &slope, const state<nc> &lf, const state<nc> &ce, const sta
     for (auto d : dir::DIRECTIONS)
         slope.rhou(d) = minmod3(slope.rhou(d), ce.rhou(d) - lf.rhou(d), rt.rhou(d) - ce.rhou(d));
     slope.rhoE = minmod3(slope.rhoE, ce.rhoE - lf.rhoE, rt.rhoE - ce.rhoE);
-}
-
-template<int nc>
-void scene_object<nc>::limit_slopes() {
-#if SECOND_ORDER && USE_LIMITERS
-    for (int j = 0; j < ny; j++)
-        for (int k = 0; k < nz; k++) {
-            ref(0, j, k).sx.zero();
-            ref(nx - 1, j, k).sx.zero();
-        }
-    for (int i = 0; i < nx; i++)
-        for (int k = 0; k < nz; k++) {
-            ref(i, 0, k).sy.zero();
-            ref(i, ny - 1, k).sy.zero();
-        }
-    for (int i = 0; i < nx; i++)
-        for (int j = 0; j < ny; j++) {
-            ref(i, j, 0).sz.zero();
-            ref(i, j, nz - 1).sz.zero();
-        }
-    for (int i = 1; i < nx - 1; i++)
-        for (int j = 0; j < ny; j++)
-            for (int k = 0; k < nz; k++)
-                limit(ref(i, j, k).sx, val(i-1, j, k).ce(), val(i, j, k).ce(), val(i+1, j, k).ce());
-    for (int i = 0; i < nx; i++)
-        for (int j = 1; j < ny - 1; j++)
-            for (int k = 0; k < nz; k++)
-                limit(ref(i, j, k).sy, val(i, j-1, k).ce(), val(i, j, k).ce(), val(i, j+1, k).ce());
-    for (int i = 0; i < nx; i++)
-        for (int j = 0; j < ny; j++)
-            for (int k = 1; k < nz - 1; k++)
-                limit(ref(i, j, k).sz, val(i, j, k-1).ce(), val(i, j, k).ce(), val(i, j, k+1).ce());
-#endif
 }
 
 template<int nc>

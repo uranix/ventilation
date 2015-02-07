@@ -4,6 +4,10 @@
 #include "vec.h"
 #include <vector>
 
+/*
+ * Cell state, stores conservative values.
+ * */
+
 template<int nc>
 struct gasinfo;
 
@@ -32,7 +36,6 @@ struct state {
         }
 
         rhou = rs * u;
-
         rhoE = rs * (eps + 0.5 * u.norm2());
     }
 
