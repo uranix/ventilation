@@ -6,7 +6,7 @@
 using namespace riemann_solver;
 
 #if PRECISE_RIEMANN
-double avg_flux::solve(const avg_params &left, const avg_params &right, const vec &norm) {
+void interface_flux::solve(const rec_params &left, const rec_params &right, const vec &norm) {
     typedef euler<double, 3>::vec rvec;
     rvec v1, v2, n;
 
@@ -42,11 +42,9 @@ double avg_flux::solve(const avg_params &left, const avg_params &right, const ve
     fmom.z = fden * v1[2] + p * n[2];
 
     fener = fden * (eps + 0.5 * vv) + p * vn;
-
-    return solver.get_1d_solver().max_speed();
 }
 #else
-double avg_flux::solve(const avg_params &left, const avg_params &right, const vec &norm) {
+void interface_flux::solve(const rec_params &left, const rec_params &right, const vec &norm) {
     double gl = left.pressure / left.density / left.specific_energy + 1;
     double gr = right.pressure / right.density / right.specific_energy + 1;
     double cleft = sqrt(gl * left.pressure / left.density);
@@ -60,7 +58,7 @@ double avg_flux::solve(const avg_params &left, const avg_params &right, const ve
     double amax = std::max(aleft, aright);
 
     double v2l = left.velocity.dot(left.velocity);
-    double v2r = right.velocity.dot(left.velocity);
+    double v2r = right.velocity.dot(right.velocity);
 /*
     double fdenl = left.density * vnl;
     vec fmoml = left.density * left.velocity * vnl + left.pressure * norm;
@@ -70,14 +68,21 @@ double avg_flux::solve(const avg_params &left, const avg_params &right, const ve
     vec fmomr = right.density * right.velocity * vnr + right.pressure * norm;
     double fenerr = (right.density * (0.5 * v2r + right.specific_energy) + right.pressure) * vnr;
 */
-    fden = 0.5 * (left.density * vnl + right.density * vnr
-                + amax * (left.density - right.density));
-    fmom = 0.5 * (left.density * left.velocity * vnl + right.density * right.velocity * vnr
-                + left.pressure * norm + right.pressure * norm
-                + amax * (left.density * left.velocity - right.density * right.velocity));
-    fener = 0.5 * (left.density * (left.specific_energy + 0.5 * v2l) * vnl + right.density * (right.specific_energy + 0.5 * v2r) * vnr
+    fden = 0.5 * (
+            left.density * vnl + right.density * vnr
+                +
+            amax * (left.density - right.density)
+        );
+    fmom = 0.5 * (
+            left.density * left.velocity * vnl + right.density * right.velocity * vnr + left.pressure * norm + right.pressure * norm
+                +
+            amax * (left.density * left.velocity - right.density * right.velocity)
+        );
+    fener = 0.5 * (
+            left.density * (left.specific_energy + 0.5 * v2l) * vnl + right.density * (right.specific_energy + 0.5 * v2r) * vnr
                 + left.pressure * vnl + right.pressure * vnr
-                + amax * (left.density * (left.specific_energy + 0.5 * v2l) - right.density * (right.specific_energy + 0.5 * v2r)));
-    return amax;
+            +
+            amax * (left.density * (left.specific_energy + 0.5 * v2l) - right.density * (right.specific_energy + 0.5 * v2r))
+        );
 }
 #endif

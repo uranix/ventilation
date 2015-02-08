@@ -1,7 +1,7 @@
 #ifndef __SOLVER_H__
 #define __SOLVER_H__
 
-#include "scene_object.h"
+#include "object.h"
 #include "tracer.h"
 
 #include <vector>
@@ -11,9 +11,9 @@
 
 template<int nc>
 class solver {
-    std::vector<objects::scene_object<nc> *> scene;
+    std::vector<objects::object<nc> *> scene;
     std::vector<tracer *> tracers;
-    const double C;
+    const double cou;
     double t;
     double dt;
     int _step;
@@ -21,9 +21,9 @@ class solver {
     gasinfo<nc> _gas;
     vec _g;
 public:
-    solver(const std::vector<objects::scene_object<nc> *> &scene,
-            const std::vector<tracer *> &tracers, const double C)
-        : scene(scene), tracers(tracers), C(C)
+    solver(const std::vector<objects::object<nc> *> &scene,
+            const std::vector<tracer *> &tracers, const double cou)
+        : scene(scene), tracers(tracers), cou(cou)
     {
 #if FP_TRAP
         feenableexcept(FE_INVALID | FE_OVERFLOW);
@@ -51,35 +51,16 @@ public:
             if (dt < dtmin)
                 dtmin = dt;
         }
-        return C * dtmin;
+        return cou * dtmin;
     }
     void integrate() {
-#if SECOND_ORDER
-        for (auto p : scene)
-            p->copy_explicit();
-#endif
-
         compute_fluxes();
         dt = estimate_timestep();
         for (auto p : scene) {
             p->integrate_rhs(t, dt);
             p->integrate(t, dt);
-            p->limit_slopes();
         }
         t += dt;
-
-#if SECOND_ORDER
-        compute_fluxes();
-        for (auto p : scene) {
-            p->integrate_rhs(t, dt);
-            p->integrate(t, dt);
-            p->limit_slopes();
-        }
-
-        for (auto p : scene)
-            p->average_with_explicit();
-#endif
-
         _step++;
     }
     std::string version() const {
@@ -90,7 +71,7 @@ public:
         for (auto p : scene)
             p->save(prefix, _step);
         for (auto t : tracers) {
-            t->template walk<nc>(prefix, _step, gas(), [this] (vec p) {
+            t->template walk<nc>(prefix, _step, gas(), [this] (vec p) -> const state<nc> {
                 for (auto o : scene) {
                     if (o->has_point(p))
                         return o->state_at(p);

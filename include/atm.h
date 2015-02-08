@@ -1,14 +1,14 @@
 #ifndef __ATM_H__
 #define __ATM_H__
 
-#include "scene_object.h"
+#include "object.h"
 
 namespace objects {
 
 template<int nc>
-struct atm : public scene_object<nc> {
+struct atm : public object<nc> {
     atm(const vec &ll, const vec &ur, const std::string &id)
-        : scene_object<nc>(1, 1, 1, ll, ur, id)
+        : object<nc>(1, 1, 1, ll, ur, id)
     {
     }
 

@@ -14,7 +14,7 @@ typedef objects::atm<2> Atm;
 typedef objects::pipe<2> Pipe;
 typedef objects::room<2> Room;
 typedef objects::fan<2> Fan;
-typedef objects::scene_object<2> Object;
+typedef objects::object<2> Object;
 typedef solver<2> Solver;
 typedef tracer Tracer;
 typedef functor<2> Functor;

@@ -69,7 +69,7 @@ struct box {
         return true;
     }
 
-    void locate_point(vec p, int &i, int &j, int &k, vec &ofs) {
+    void locate_point(vec p, int &i, int &j, int &k, vec &ofs) const {
         vec dp = p - ll;
         dp /= h;
         i = static_cast<int>(dp.x);
@@ -90,13 +90,11 @@ struct box {
         return ll + vec(i + .5, j + .5, k + .5) * h;
     }
 
-    ContactList &side(int d, int s, int i, int j, int k) {
-        if (d == 0) {
+    ContactList &side(dir::Direction d, int s, int i, int j, int k) {
+        if (d == dir::X)
             return _side[d][s][j + ny * k];
-        }
-        if (d == 1) {
+        if (d == dir::Y)
             return _side[d][s][i + nx * k];
-        }
         return _side[d][s][i + nx * j];
     }
 
@@ -104,10 +102,6 @@ struct box {
         for (int d = 0; d < 3; d++)
             for (int s = 0; s < 2; s++)
                 delete[] _side[d][s];
-    }
-
-    double get_min_h() const {
-        return std::min(h.x, std::min(h.y, h.z));
     }
 };
 

@@ -11,7 +11,14 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/GitVersion.h.in ${CMAKE_CURRENT_BINAR
 
 set(vent_SOURCES src/flux.cpp src/contact.cpp)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fmax-errors=5 -std=c++11 -Wall -Werror -Wextra -g")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Werror -Wextra -g")
+set(max_errors 5)
+if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fmax-errors=${max_errors}")
+endif()
+if(${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ferror-limit=${max_errors}")
+endif()
 
 if(NOT DEFINED PRECISE_RIEMANN)
 	set(PRECISE_RIEMANN FALSE)
@@ -22,8 +29,10 @@ if(NOT DEFINED FP_TRAP)
 endif()
 
 message(STATUS "Configuerd with following params")
+message(STATUS " ")
 message(STATUS "Use precise Riemann solver (-DPRECISE_RIEMANN): ${PRECISE_RIEMANN}")
 message(STATUS "Use floating point traps (-DFP_TRAP): ${FP_TRAP}")
+message(STATUS " ")
 
 if (${PRECISE_RIEMANN})
 	add_definitions("-DPRECISE_RIEMANN=1")

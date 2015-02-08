@@ -2,7 +2,6 @@
 #define __TRACER_H__
 
 #include "vec.h"
-#include "sloped_state.h"
 
 #include <vector>
 #include <string>
@@ -43,7 +42,7 @@ public:
         f << "len,";
         for (int i = 0; i < nc; i++)
             f << "rho" << i << ",";
-        f << "ux,uy,uz,v,p,eps,T" << std::endl;
+        f << "rho,gamma,ux,uy,uz,v,p,eps,T" << std::endl;
         f.precision(15);
 
         size_t ps = path.size();
@@ -61,6 +60,7 @@ public:
             f << path[i].first << ",";
             for (int j = 0; j < nc; j++)
                 f << st.rho[j] << ",";
+            f << st.density() << "," << gas.gamma_factor(st) << ",";
             vec v = st.velocity();
             f << v.x << "," << v.y << "," << v.z << "," << v.dot(tang) << ",";
             f << gas.pressure(st) << "," << st.specific_energy() << ","

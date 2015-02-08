@@ -1,6 +1,6 @@
 template<int nc>
 template<typename T>
-void scene_object<nc>::put(std::fstream &f, T value) const {
+void object<nc>::put(std::fstream &f, T value) const {
     union {
         char buf[sizeof(T)];
         T val;
@@ -11,7 +11,7 @@ void scene_object<nc>::put(std::fstream &f, T value) const {
 }
 
 template<int nc>
-void scene_object<nc>::save(const std::string &prefix, const int step) const {
+void object<nc>::save(const std::string &prefix, const int step) const {
     #include "GitVersion.h"
     std::string fn(prefix + id);
     fn += ".";
@@ -45,13 +45,23 @@ void scene_object<nc>::save(const std::string &prefix, const int step) const {
         for (int k = 0; k < nz; k++)
             for (int j = 0; j < ny; j++)
                 for (int i = 0; i < nx; i++)
-                    put<float>(f, val(i, j, k).ce().rho[ic]);
+                    put<float>(f, val(i, j, k).rho[ic]);
     }
+    f << "\nSCALARS rho float\nLOOKUP_TABLE default\n";
+    for (int k = 0; k < nz; k++)
+        for (int j = 0; j < ny; j++)
+            for (int i = 0; i < nx; i++)
+                put<float>(f, val(i, j, k).density());
+    f << "\nSCALARS gamma float\nLOOKUP_TABLE default\n";
+    for (int k = 0; k < nz; k++)
+        for (int j = 0; j < ny; j++)
+            for (int i = 0; i < nx; i++)
+                put<float>(f, gas().gamma_factor(val(i, j, k)));
     f << "\nVECTORS v float\n";
     for (int k = 0; k < nz; k++)
         for (int j = 0; j < ny; j++)
             for (int i = 0; i < nx; i++) {
-                const vec &v = val(i, j, k).ce().velocity();
+                const vec &v = val(i, j, k).velocity();
                 put<float>(f, v.x);
                 put<float>(f, v.y);
                 put<float>(f, v.z);
@@ -60,17 +70,17 @@ void scene_object<nc>::save(const std::string &prefix, const int step) const {
     for (int k = 0; k < nz; k++)
         for (int j = 0; j < ny; j++)
             for (int i = 0; i < nx; i++)
-                put<float>(f, gas().pressure(val(i, j, k).ce()));
+                put<float>(f, gas().pressure(val(i, j, k)));
     f << "\nSCALARS T float\nLOOKUP_TABLE default\n";
     for (int k = 0; k < nz; k++)
         for (int j = 0; j < ny; j++)
             for (int i = 0; i < nx; i++)
-                put<float>(f, gas().temperature(val(i, j, k).ce()));
+                put<float>(f, gas().temperature(val(i, j, k)));
     f << "\nSCALARS eps float\nLOOKUP_TABLE default\n";
     for (int k = 0; k < nz; k++)
         for (int j = 0; j < ny; j++)
             for (int i = 0; i < nx; i++)
-                put<float>(f, gas().specific_energy(val(i, j, k).ce()));
+                put<float>(f, gas().specific_energy(val(i, j, k)));
     f << std::endl;
     f.close();
 }

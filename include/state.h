@@ -141,6 +141,11 @@ struct gasinfo {
     double temperature(const state<nc> &st) const {
         return st.specific_energy() / heat_capacity_volume(st);
     }
+
+    double sound_speed(const state<nc> &st) const {
+        const double g = gamma_factor(st);
+        return sqrt(g * (g - 1) * specific_energy(st));
+    }
 };
 
 template<int nc>

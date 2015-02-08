@@ -37,8 +37,6 @@ struct flux {
     vec fmom;
     double fener;
 
-    double amax;
-
     flux() {
         zero();
     }
@@ -48,18 +46,14 @@ struct flux {
             fdens[i] = 0;
         fmom = vec(0);
         fener = 0;
-        amax = 0;
     }
 
     void add_kernel(const double tl[], const double tr[], const rec_params &la, const rec_params &ra, const vec &norm, const double Sfrac) {
         interface_flux iface;
 
-        double _amax = iface.solve(la, ra, norm);
-        if (_amax > amax)
-            amax = _amax;
+        iface.solve(la, ra, norm);
 
-        double rhovn = iface.fden;
-
+        const double rhovn = iface.fden;
         const double *theta = rhovn > 0 ? tl : tr;
 
         for (int i = 0; i < nc; i++)

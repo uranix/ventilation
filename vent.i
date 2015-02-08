@@ -3,7 +3,7 @@
 %{
 #include "vec.h"
 #include "state.h"
-#include "scene_object.h"
+#include "object.h"
 #include "room.h"
 #include "pipe.h"
 #include "atm.h"
@@ -55,20 +55,20 @@ struct functor {
 };
 %template(Functor) functor<NC>;
 
-%nodefaultctor objects::scene_object;
+%nodefaultctor objects::object;
 namespace objects {
     template<int nc>
-    struct scene_object : public box {
+    struct object : public box {
         void fill(const functor<nc> &f);
         void fill_sources(const functor<nc> &f);
         void debug_avg();
     };
     template<int nc>
-    struct room : public scene_object<nc> {
+    struct room : public object<nc> {
         room(int nx, int ny, int nz, const vec &ll, const vec &ur, const std::string &id);
     };
     template<int nc>
-    struct pipe : public scene_object<nc> {
+    struct pipe : public object<nc> {
         pipe(int n, char dir, const vec &ll, const vec &ur, const std::string &id, double friction_coeff = 0);
     };
     template<int nc>
@@ -76,21 +76,21 @@ namespace objects {
         fan(int n, char dir, const vec &ll, const vec &ur, const std::string &id, double Pmax, double Qmax, double friction_coeff = 0);
     };
     template<int nc>
-    struct atm : public scene_object<nc> {
+    struct atm : public object<nc> {
         atm(const vec &ll, const vec &ur, const std::string &id);
     };
     template<int nc>
-    struct pulse : public scene_object<nc> {
+    struct pulse : public object<nc> {
         pulse(const vec &ll, const vec &ur, const std::string &id, const double drE, const double freq);
     };
 }
-%template(SceneObject) objects::scene_object<NC>;
-%template(Room) objects::room<NC>;
-%template(Pipe) objects::pipe<NC>;
-%template(Fan) objects::fan<NC>;
-%template(Atm) objects::atm<NC>;
-%template(Pulse) objects::pulse<NC>;
-%template(Chain) std::vector<vec>;
+%template(Object) objects::object<NC>;
+%template(Room)   objects::room<NC>;
+%template(Pipe)   objects::pipe<NC>;
+%template(Fan)    objects::fan<NC>;
+%template(Atm)    objects::atm<NC>;
+%template(Pulse)  objects::pulse<NC>;
+%template(Chain)  std::vector<vec>;
 
 %rename(Tracer) tracer;
 class tracer {
@@ -98,15 +98,15 @@ public:
     tracer(const std::vector<vec> &chain, const std::string &name, double step);
 };
 
-%template(Scene) std::vector<objects::scene_object<NC> *>;
+%template(Scene) std::vector<objects::object<NC> *>;
 %template(Tracers) std::vector<tracer *>;
 
 template<int nc>
 struct solver {
     solver(
-        const std::vector<objects::scene_object<nc> *> &scene,
+        const std::vector<objects::object<nc> *> &scene,
         const std::vector<tracer *> &tracers,
-        const double C);
+        const double cou);
     void set_gas(const gasinfo<nc> &gas);
     void set_gravity(const vec &g);
     void integrate();

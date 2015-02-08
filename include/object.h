@@ -3,7 +3,6 @@
 
 #include "box.h"
 #include "state.h"
-#include "sloped_state.h"
 #include "flux.h"
 
 #include <iostream>
@@ -22,13 +21,13 @@ class solver;
 namespace objects {
 
 template<int nc>
-struct scene_object : public box {
+struct object : public box {
     state<nc> *_states;
     state<nc> *_sources;
     flux<nc> *_fluxes[3];
     const solver<nc> *slvr;
 
-    scene_object(int nx, int ny, int nz, const vec &ll, const vec &ur, const std::string &id)
+    object(int nx, int ny, int nz, const vec &ll, const vec &ur, const std::string &id)
         : box(nx, ny, nz, ll, ur, id), slvr(nullptr)
     {
         std::cout << "Using scene object `" << id << "' with dims = "
@@ -43,13 +42,11 @@ struct scene_object : public box {
         _fluxes[2] = new flux<nc>[(nz + 1) * ny * nx];
     }
 
-    state<nc> state_at(vec p) {
+    const state<nc> &state_at(vec p) const {
         int i, j, k;
         vec ofs;
         locate_point(p, i, j, k, ofs);
-        const const_sloped_state<nc> &v = val(i, j, k);
-        state<nc> ret = v.ce();
-        return ret;
+        return val(i, j, k);
     }
 
     void set_solver(const ::solver<nc> *slvr) {
@@ -64,7 +61,7 @@ struct scene_object : public box {
         return slvr->gas();
     }
 
-    virtual ~scene_object() {
+    virtual ~object() {
         delete[] _states;
         delete[] _sources;
         for (int i = 0; i < 3; i++)
@@ -75,16 +72,8 @@ struct scene_object : public box {
         for (int i = 0; i < nx; i++)
             for (int j = 0; j < ny; j++)
                 for (int k = 0; k < nz; k++) {
-                    sloped_state<nc> st = ref(i, j, k);
-                    f(center(i, j, k), st.avg);
+                    f(center(i, j, k), ref(i, j, k));
                 }
-    }
-
-    void average(const state<nc> &u0, state<nc> &u2) {
-        for (int i = 0; i < nc; i++)
-            u2.rho[i] = .5 * (u0.rho[i] + u2.rho[i]);
-        u2.rhou = .5 * (u0.rhou + u2.rhou);
-        u2.rhoE = .5 * (u0.rhoE + u2.rhoE);
     }
 
     void fill_sources(const functor<nc> &f) {
@@ -94,25 +83,25 @@ struct scene_object : public box {
                     f(center(i, j, k), this->source(i, j, k));
     }
 
-    const_sloped_state<nc> val(int i, int j, int k) const {
+    const state<nc> &val(int i, int j, int k) const {
         assert(i >= 0 && i < nx);
         assert(j >= 0 && j < ny);
         assert(k >= 0 && k < nz);
 
         int idx = i + (j + k * ny) * nx;
-        return const_sloped_state<nc>(_states[idx]);
+        return _states[idx];
     }
 
-    sloped_state<nc> ref(int i, int j, int k) {
+    state<nc> &ref(int i, int j, int k) {
         assert(i >= 0 && i < nx);
         assert(j >= 0 && j < ny);
         assert(k >= 0 && k < nz);
 
         int idx = i + (j + k * ny) * nx;
-        return sloped_state<nc>(_states[idx]);
+        return _states[idx];
     }
 
-    const_sloped_state<nc> val(dir::Direction dir, int i) const {
+    const state<nc> val(dir::Direction dir, int i) const {
         if (dir == dir::X)
             return val(i, 0, 0);
         if (dir == dir::Y)
@@ -132,9 +121,9 @@ struct scene_object : public box {
 
     virtual double get_max_dt() const;
 
-    virtual void integrate(sloped_state<nc> cell, const flux<nc> &left, const flux<nc> &right,
+    virtual void integrate(state<nc> &cell, const flux<nc> &left, const flux<nc> &right,
             dir::Direction dir, double h, const double t, const double dt);
-    virtual void integrate_rhs(sloped_state<nc> cell, const state<nc> &source, const double t, const double dt);
+    virtual void integrate_rhs(state<nc> &cell, const state<nc> &source, const double t, const double dt);
     virtual void integrate(const double t, const double dt);
     virtual void integrate_rhs(const double t, const double dt);
 
@@ -146,7 +135,7 @@ struct scene_object : public box {
     void debug_avg() const;
 };
 
-#include "../src/scene_object.tpp"
+#include "../src/object.tpp"
 #include "../src/vtk.tpp"
 
 }

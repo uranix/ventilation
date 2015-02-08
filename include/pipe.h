@@ -1,18 +1,18 @@
 #ifndef __PIPE_H__
 #define __PIPE_H__
 
-#include "scene_object.h"
+#include "object.h"
 
 namespace objects {
 
 template<int nc>
-struct pipe : public scene_object<nc> {
+struct pipe : public object<nc> {
     dir::Direction dir;
     double surface, perimeter;
     double friction_coeff;
 
     pipe(int n, char cdir, const vec &ll, const vec &ur, const std::string &id, double friction_coeff = 0)
-        : scene_object<nc>(
+        : object<nc>(
             dir::from_char(cdir) == dir::X ? n : 1,
             dir::from_char(cdir) == dir::Y ? n : 1,
             dir::from_char(cdir) == dir::Z ? n : 1, ll, ur, id),
@@ -34,8 +34,8 @@ struct pipe : public scene_object<nc> {
     virtual double get_max_dt() const override;
 
     virtual void integrate(const double t, const double dt) override ;
-    virtual void integrate(sloped_state<nc> cell, const flux<nc> &left, const flux<nc> &right, dir::Direction dir, double h, const double t, double dt) override;
-    virtual void integrate_rhs(sloped_state<nc> cell, const state<nc> &source, const double t, const double dt) override;
+    virtual void integrate(state<nc> &cell, const flux<nc> &left, const flux<nc> &right, dir::Direction dir, double h, const double t, double dt) override;
+    virtual void integrate_rhs(state<nc> &cell, const state<nc> &source, const double t, const double dt) override;
 };
 
 #include "../src/pipe.tpp"

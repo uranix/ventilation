@@ -1,20 +1,13 @@
 static const char VERSION[] = "Ventilation solver, "
-#if SECOND_ORDER
-"second order, "
-#else
-"first order, "
-#endif
+
 #if PRECISE_RIEMANN
 "exact Riemann solver, "
 #else
 "approximate local Lax-Friedrichs solver, "
 #endif
-#if USE_LIMITERS
-"using slope limiters, "
-#else
-"without slope limiters, "
-#endif
+
 #if FT_TRAP
 "trapping floating-point exceptions, "
 #endif
+
 "revision @GIT_VERSION@, built on " __DATE__;
