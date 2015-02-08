@@ -1,22 +1,24 @@
 #include "flux.h"
 
 #include "riemann/euler.h"
+#include <Eigen/Core>
+#include <Eigen/LU>
 #include <iostream>
 
 using namespace riemann_solver;
 
 #if PRECISE_RIEMANN
-void interface_flux::solve(const rec_params &left, const rec_params &right, const vec &norm) {
+void interface_flux::solve(const rec_params &le, const rec_params &ri, const vec &norm) {
     typedef euler<double, 3>::vec rvec;
     rvec v1, v2, n;
 
-    v1[0] = left.velocity.x;
-    v1[1] = left.velocity.y;
-    v1[2] = left.velocity.z;
+    v1[0] = le.velocity.x;
+    v1[1] = le.velocity.y;
+    v1[2] = le.velocity.z;
 
-    v2[0] = right.velocity.x;
-    v2[1] = right.velocity.y;
-    v2[2] = right.velocity.z;
+    v2[0] = ri.velocity.x;
+    v2[1] = ri.velocity.y;
+    v2[2] = ri.velocity.z;
 
     n[0] = norm.x;
     n[1] = norm.y;
@@ -25,8 +27,8 @@ void interface_flux::solve(const rec_params &left, const rec_params &right, cons
     double tol = 1e-6;
     const int maxit = 5;
     euler<double, 3> solver(
-        left.density, v1, left.pressure, 1 + left.pressure / left.density / left.specific_energy,
-        right.density, v2, right.pressure, 1 + right.pressure / right.density / right.specific_energy,
+        le.density, v1, le.pressure, 1 + le.pressure / le.density / le.specific_energy,
+        ri.density, v2, ri.pressure, 1 + ri.pressure / ri.density / ri.specific_energy,
         n, tol, maxit);
 
     double r, p, eps, xi = 0;
@@ -44,45 +46,80 @@ void interface_flux::solve(const rec_params &left, const rec_params &right, cons
     fener = fden * (eps + 0.5 * vv) + p * vn;
 }
 #else
-void interface_flux::solve(const rec_params &left, const rec_params &right, const vec &norm) {
-    double gl = left.pressure / left.density / left.specific_energy + 1;
-    double gr = right.pressure / right.density / right.specific_energy + 1;
-    double cleft = sqrt(gl * left.pressure / left.density);
-    double cright = sqrt(gr * right.pressure / right.density);
+void interface_flux::solve(const rec_params &le, const rec_params &ri, const vec &n) {
+    Eigen::Matrix<double, 5, 1> UL, UR, U, lam;
+    Eigen::Matrix<double, 5, 1> FL, FR, F;
+    Eigen::Matrix<double, 5, 5> Om, iOm;
 
-    double vnl = left.velocity.dot(norm);
-    double vnr = right.velocity.dot(norm);
-    double aleft = cleft + fabs(vnl);
-    double aright = cright + fabs(vnr);
+    double q2l = le.velocity.dot(le.velocity);
+    double q2r = ri.velocity.dot(ri.velocity);
+    double vnl = le.velocity.dot(n);
+    double vnr = ri.velocity.dot(n);
 
-    double amax = std::max(aleft, aright);
+    UL[0] = le.density;
+    UL[1] = le.density * le.velocity.x;
+    UL[2] = le.density * le.velocity.y;
+    UL[3] = le.density * le.velocity.z;
+    UL[4] = le.density * (le.specific_energy + .5 * q2l);
 
-    double v2l = left.velocity.dot(left.velocity);
-    double v2r = right.velocity.dot(right.velocity);
-/*
-    double fdenl = left.density * vnl;
-    vec fmoml = left.density * left.velocity * vnl + left.pressure * norm;
-    double fenerl = (left.density * (0.5 * v2l + left.specific_energy) + left.pressure) * vnl;
+    UR[0] = ri.density;
+    UR[1] = ri.density * ri.velocity.x;
+    UR[2] = ri.density * ri.velocity.y;
+    UR[3] = ri.density * ri.velocity.z;
+    UR[4] = ri.density * (ri.specific_energy + .5 * q2r);
 
-    double fdenr = right.density * vnr;
-    vec fmomr = right.density * right.velocity * vnr + right.pressure * norm;
-    double fenerr = (right.density * (0.5 * v2r + right.specific_energy) + right.pressure) * vnr;
-*/
-    fden = 0.5 * (
-            left.density * vnl + right.density * vnr
-                +
-            amax * (left.density - right.density)
-        );
-    fmom = 0.5 * (
-            left.density * left.velocity * vnl + right.density * right.velocity * vnr + left.pressure * norm + right.pressure * norm
-                +
-            amax * (left.density * left.velocity - right.density * right.velocity)
-        );
-    fener = 0.5 * (
-            left.density * (left.specific_energy + 0.5 * v2l) * vnl + right.density * (right.specific_energy + 0.5 * v2r) * vnr
-                + left.pressure * vnl + right.pressure * vnr
-            +
-            amax * (left.density * (left.specific_energy + 0.5 * v2l) - right.density * (right.specific_energy + 0.5 * v2r))
-        );
+    FL[0] = UL[0] * vnl;
+    FL[1] = UL[1] * vnl + le.pressure * n.x;
+    FL[2] = UL[2] * vnl + le.pressure * n.y;
+    FL[3] = UL[3] * vnl + le.pressure * n.z;
+    FL[4] = UL[4] * vnl + le.pressure * vnl;
+
+    FR[0] = UR[0] * vnr;
+    FR[1] = UR[1] * vnr + ri.pressure * n.x;
+    FR[2] = UR[2] * vnr + ri.pressure * n.y;
+    FR[3] = UR[3] * vnr + ri.pressure * n.z;
+    FR[4] = UR[4] * vnr + ri.pressure * vnr;
+
+    U = 0.5 * (UL + UR);
+    double rho = U[0];
+    vec u(U[1], U[2], U[3]);
+    u *= (1 / rho);
+    double q2 = u.dot(u);
+    double eps = U[4];
+    double p = .5 * (le.pressure + ri.pressure);
+    eps /= rho;
+    eps -= .5 * q2;
+    double k = p / eps / rho;
+    double c = sqrt(k * (k + 1) * eps);
+    double vn = u.dot(n);
+
+    Om <<
+        -u.x,   1,  0,  0,  0,
+        -u.y,   0,  1,  0,  0,
+        -u.z,   0,  0,  1,  0,
+        .5 * q2 + c * vn / k,   -u.x - c/k * n.x,   -u.y - c/k * n.y,   -u.z - c/k * n.z,   1,
+        .5 * q2 - c * vn / k,   -u.x + c/k * n.x,   -u.y + c/k * n.y,   -u.z + c/k * n.z,   1;
+
+    int row;
+    if (n.x > .5)
+        row = 0;
+    if (n.y > .5)
+        row = 1;
+    if (n.z > .5)
+        row = 2;
+
+    Om.row(row) << -c*c/k - q2/2 + vn*vn, -vn * n.x, -vn * n.y, -vn * n.z, 1;
+
+    lam << vn, vn, vn, vn - c, vn + c;
+
+    iOm = Om.inverse();
+
+    F = .5 * (FL + FR + iOm * lam.cwiseAbs().cwiseProduct(Om * (UL - UR)));
+
+    fden = F[0];
+    fmom.x = F[1];
+    fmom.y = F[2];
+    fmom.z = F[3];
+    fener = F[4];
 }
 #endif

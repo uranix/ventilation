@@ -3,7 +3,7 @@ static const char VERSION[] = "Ventilation solver, "
 #if PRECISE_RIEMANN
 "exact Riemann solver, "
 #else
-"approximate local Lax-Friedrichs solver, "
+"Courant-Isacson-Rees solver, "
 #endif
 
 #if FT_TRAP

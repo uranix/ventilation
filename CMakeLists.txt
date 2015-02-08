@@ -55,6 +55,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 include_directories(include/)
+include_directories(include/eigen/)
 add_library(vent SHARED ${vent_SOURCES})
 
 SET_SOURCE_FILES_PROPERTIES(vent.i PROPERTIES CPLUSPLUS ON)

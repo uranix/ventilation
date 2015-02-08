@@ -197,28 +197,6 @@ void object<nc>::integrate_rhs(const double t, const double dt) {
                 integrate_rhs(ref(i, j, k), this->source(i, j, k), t, dt);
 }
 
-double minmod(double a, double b) {
-    if (a * b <= 0)
-        return 0;
-    if (a > 0)
-        return std::min(a, b);
-    return std::max(a, b);
-}
-
-double minmod3(double a, double b, double c) {
-    const double theta = 1;
-    return minmod(a, 0.5 * theta * minmod(b, c));
-}
-
-template<int nc>
-void limit(state<nc> &slope, const state<nc> &lf, const state<nc> &ce, const state<nc> &rt) {
-    for (int i = 0; i < nc; i++)
-        slope.rho[i] = minmod3(slope.rho[i], ce.rho[i] - lf.rho[i], rt.rho[i] - ce.rho[i]);
-    for (auto d : dir::DIRECTIONS)
-        slope.rhou(d) = minmod3(slope.rhou(d), ce.rhou(d) - lf.rhou(d), rt.rhou(d) - ce.rhou(d));
-    slope.rhoE = minmod3(slope.rhoE, ce.rhoE - lf.rhoE, rt.rhoE - ce.rhoE);
-}
-
 template<int nc>
 void object<nc>::debug_avg() const {
     double Tavg = 0;
