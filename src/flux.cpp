@@ -2,7 +2,6 @@
 
 #include "riemann/euler.h"
 #include <Eigen/Core>
-#include <Eigen/LU>
 #include <iostream>
 
 using namespace riemann_solver;
@@ -85,34 +84,53 @@ void interface_flux::solve(const rec_params &le, const rec_params &ri, const vec
     vec u(U[1], U[2], U[3]);
     u *= (1 / rho);
     double q2 = u.dot(u);
+    double vn = u.dot(n);
     double eps = U[4];
-    double p = .5 * (le.pressure + ri.pressure);
     eps /= rho;
     eps -= .5 * q2;
-    double k = p / eps / rho;
+    double kl = le.pressure / le.specific_energy / le.density;
+    double kr = ri.pressure / ri.specific_energy / ri.density;
+    //double k = 2 * kr * kl / (kr + kl);
+    double k;
+    if (vn > 0)
+        k = kl;
+    else
+        k = kr;
     double c = sqrt(k * (k + 1) * eps);
-    double vn = u.dot(n);
 
     Om <<
-        -u.x,   1,  0,  0,  0,
-        -u.y,   0,  1,  0,  0,
-        -u.z,   0,  0,  1,  0,
+        -u.x,                   1,                  0,                  0,                  0,
+        -u.y,                   0,                  1,                  0,                  0,
+        -u.z,                   0,                  0,                  1,                  0,
         .5 * q2 + c * vn / k,   -u.x - c/k * n.x,   -u.y - c/k * n.y,   -u.z - c/k * n.z,   1,
         .5 * q2 - c * vn / k,   -u.x + c/k * n.x,   -u.y + c/k * n.y,   -u.z + c/k * n.z,   1;
 
-    int row;
+    int idx;
     if (n.x > .5)
-        row = 0;
+        idx = 0;
     if (n.y > .5)
-        row = 1;
+        idx = 1;
     if (n.z > .5)
-        row = 2;
+        idx = 2;
 
-    Om.row(row) << -c*c/k - q2/2 + vn*vn, -vn * n.x, -vn * n.y, -vn * n.z, 1;
+    double s = c*c/k;
+
+    Om.row(idx) << -s - q2/2 + vn*vn, -vn * n.x, -vn * n.y, -vn * n.z, 1;
 
     lam << vn, vn, vn, vn - c, vn + c;
+//    const double amax = fabs(vn) + c;
+//    lam << amax, amax, amax, amax, amax;
 
-    iOm = Om.inverse();
+    iOm <<
+        u.x,                u.y,                u.z,                .5,                     .5,
+        u.x * u.x + s,      u.x * u.y,          u.x * u.z,          (u.x - c * n.x) / 2,    (u.x + c * n.x) / 2,
+        u.x * u.y,          u.y * u.y + s,      u.y * u.z,          (u.y - c * n.y) / 2,    (u.y + c * n.y) / 2,
+        u.x * u.z,          u.y * u.z,          u.z * u.z + s,      (u.z - c * n.z) / 2,    (u.z + c * n.z) / 2,
+        (s + q2/2) * u.x,   (s + q2/2) * u.y,   (s + q2/2) * u.z,   q2/4 - c*vn/2 + s/2,    q2/4 + c*vn/2 + s/2;
+
+    iOm.col(idx) << -1, -u.x, -u.y, -u.z, -.5*q2;
+
+    iOm *= k / (c * c);
 
     F = .5 * (FL + FR + iOm * lam.cwiseAbs().cwiseProduct(Om * (UL - UR)));
 

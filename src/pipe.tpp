@@ -47,7 +47,7 @@ double pipe<nc>::get_max_dt() const {
 
     for (int i = 0; i < this->n(dir); i++) {
         const double c = this->gas().sound_speed(this->val(dir, i));
-        const double v = this->val(dir, i).velocity()(dir);
+        const double v = fabs(this->val(dir, i).velocity()(dir));
         if (c > cmax)
             cmax = c;
         if (v > vmax)
