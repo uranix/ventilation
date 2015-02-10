@@ -158,6 +158,12 @@ struct gasinfo {
         return Cv / MR;
     }
 
+    double dbetadtheta(const state<nc> &st, int i) const {
+        const double M = molar_mass(st);
+        const double b = beta_factor(st);
+        return M * ((b - beta[0]) / molar[0] - (b - beta[i]) / molar[i]);
+    }
+
     double molar_mass(const state<nc> &st) const {
         double rho_M = 0, rho = 0;
 
