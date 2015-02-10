@@ -69,6 +69,8 @@ template<int nc>
 struct gasinfo {
     double Rspecific[nc]; /* J / kg / K */
     double gamma[nc];
+    double molar[nc];
+    double beta[nc];
     double visc[nc];
 
     gasinfo() {
@@ -79,6 +81,8 @@ struct gasinfo {
 
         Rspecific[i] = Runi / molar_mass;
         gamma[i] = gamma_factor;
+        molar[i] = molar_mass;
+        beta[i] = 1 / (gamma_factor - 1);
         visc[i] = viscosity;
     }
 
@@ -98,9 +102,9 @@ struct gasinfo {
         double Cv = 0, Cp = 0;
 
         for (int i = 0; i < nc; i++) {
-            double x = st.rho[i] * Rspecific[i] / (gamma[i] - 1);
-            Cv += x;
-            Cp += x * gamma[i];
+            double x = st.rho[i] * Rspecific[i];
+            Cv += x * beta[i];
+            Cp += x * (beta[i] + 1);
         }
 
         return Cp / Cv;
@@ -110,7 +114,7 @@ struct gasinfo {
         double Cv = 0;
 
         for (int i = 0; i < nc; i++) {
-            double x = st.rho[i] * Rspecific[i] / (gamma[i] - 1);
+            double x = st.rho[i] * Rspecific[i] * beta[i];
             Cv += x;
         }
 
@@ -140,6 +144,29 @@ struct gasinfo {
 
     double temperature(const state<nc> &st) const {
         return st.specific_energy() / heat_capacity_volume(st);
+    }
+
+    double beta_factor(const state<nc> &st) const {
+        double Cv = 0, MR = 0;
+
+        for (int i = 0; i < nc; i++) {
+            double x = st.rho[i] * Rspecific[i];
+            Cv += x * beta[i];
+            MR += x;
+        }
+
+        return Cv / MR;
+    }
+
+    double molar_mass(const state<nc> &st) const {
+        double rho_M = 0, rho = 0;
+
+        for (int i = 0; i < nc; i++) {
+            rho_M += st.rho[i] / molar[i];
+            rho += st.rho[i];
+        }
+
+        return rho / rho_M;
     }
 
     double sound_speed(const state<nc> &st) const {

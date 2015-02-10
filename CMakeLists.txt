@@ -9,7 +9,7 @@ git_describe(GIT_VERSION --tags)
 message(STATUS "Configured version is ${GIT_VERSION}")
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/GitVersion.h.in ${CMAKE_CURRENT_BINARY_DIR}/GitVersion.h @ONLY)
 
-set(vent_SOURCES src/flux.cpp src/contact.cpp)
+set(vent_SOURCES src/contact.cpp)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Werror -Wextra -g")
 set(max_errors 5)
