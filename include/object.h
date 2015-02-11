@@ -49,17 +49,9 @@ struct object : public box {
         return val(i, j, k);
     }
 
-    void set_solver(const ::solver<nc> *slvr) {
-        this->slvr = slvr;
-    }
-
-    const vec &g() const {
-        return slvr->g();
-    }
-
-    const gasinfo<nc> &gas() const {
-        return slvr->gas();
-    }
+    void set_solver(const ::solver<nc> *slvr);
+    const vec &g() const;
+    const gasinfo<nc> &gas() const;
 
     virtual ~object() {
         delete[] _states;
@@ -134,9 +126,6 @@ struct object : public box {
 
     void debug_avg() const;
 };
-
-#include "../src/object.tpp"
-#include "../src/vtk.tpp"
 
 }
 

@@ -1,3 +1,10 @@
+#include "../include/object.h"
+#include "../include/solver.h"
+
+namespace objects {
+
+template struct object<NC>;
+
 template<int nc>
 void object<nc>::compute_inner_fluxes() {
     for (int i = 1; i < nx; i++)
@@ -206,4 +213,21 @@ void object<nc>::debug_avg() const {
                 Tavg += gas().temperature(val(i, j, k));
     Tavg /= nx * ny * nz;
     std::cout << "Tavg = " << Tavg << std::endl;
+}
+
+template<int nc>
+void object<nc>::set_solver(const ::solver<nc> *slvr) {
+    this->slvr = slvr;
+}
+
+template<int nc>
+const vec &object<nc>::g() const {
+    return slvr->g();
+}
+
+template<int nc>
+const gasinfo<nc> &object<nc>::gas() const {
+    return slvr->gas();
+}
+
 }

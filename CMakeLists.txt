@@ -9,7 +9,13 @@ git_describe(GIT_VERSION --tags)
 message(STATUS "Configured version is ${GIT_VERSION}")
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/GitVersion.h.in ${CMAKE_CURRENT_BINARY_DIR}/GitVersion.h @ONLY)
 
-set(vent_SOURCES src/contact.cpp)
+set(vent_SOURCES
+	src/contact.cpp
+	src/vtk.cpp
+	src/object.cpp
+	src/pipe.cpp
+	src/solver.cpp
+	)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Werror -Wextra -g")
 set(max_errors 5)
@@ -28,16 +34,23 @@ if(NOT DEFINED FP_TRAP)
 	set(FP_TRAP TRUE)
 endif()
 
+if(NOT DEFINED NC)
+	set(NC 2)
+endif()
+
 message(STATUS "Configuerd with following params")
 message(STATUS " ")
 message(STATUS "Use precise Riemann solver (-DPRECISE_RIEMANN): ${PRECISE_RIEMANN}")
 message(STATUS "Use floating point traps (-DFP_TRAP): ${FP_TRAP}")
+message(STATUS "Number of components (-DNC): ${NC}")
 message(STATUS " ")
 
 if (${PRECISE_RIEMANN})
 	add_definitions("-DPRECISE_RIEMANN=1")
+	list(APPEND vent_SOURCES src/flux_riemann.cpp)
 else()
 	add_definitions("-DPRECISE_RIEMANN=0")
+	list(APPEND vent_SOURCES src/flux_cir.cpp)
 endif()
 
 if (${FP_TRAP})
@@ -45,6 +58,8 @@ if (${FP_TRAP})
 else()
 	add_definitions("-DFP_TRAP=0")
 endif()
+
+add_definitions("-DNC=${NC}")
 
 find_package(SWIG 3.0 REQUIRED)
 include(${SWIG_USE_FILE})
@@ -58,13 +73,13 @@ include_directories(include/)
 include_directories(include/eigen/)
 add_library(vent SHARED ${vent_SOURCES})
 
-SET_SOURCE_FILES_PROPERTIES(vent.i PROPERTIES CPLUSPLUS ON)
-SET_SOURCE_FILES_PROPERTIES(vent.i PROPERTIES SWIG_FLAGS "-Wall")
-SWIG_ADD_MODULE(vent python vent.i)
-SWIG_LINK_LIBRARIES(vent ${PYTHON_LIBRARIES} vent)
+SET_SOURCE_FILES_PROPERTIES(pyvent.i PROPERTIES CPLUSPLUS ON)
+SET_SOURCE_FILES_PROPERTIES(pyvent.i PROPERTIES SWIG_FLAGS "-Wall")
+SWIG_ADD_MODULE(pyvent python pyvent.i)
+SWIG_LINK_LIBRARIES(pyvent ${PYTHON_LIBRARIES} vent)
 
-# add_executable(main main.cpp)
-# target_link_libraries(main vent)
+#add_executable(main main.cpp)
+#target_link_libraries(main vent)
 
 # add_executable(col col.cpp)
 # target_link_libraries(col vent)

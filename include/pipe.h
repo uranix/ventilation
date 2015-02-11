@@ -38,8 +38,6 @@ struct pipe : public object<nc> {
     virtual void integrate_rhs(state<nc> &cell, const state<nc> &source, const double t, const double dt) override;
 };
 
-#include "../src/pipe.tpp"
-
 }
 
 #endif

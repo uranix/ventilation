@@ -61,10 +61,4 @@ struct flux {
     }
 };
 
-#if PRECISE_RIEMANN
-# include "../src/flux_riemann.tpp"
-#else
-# include "../src/flux_cir.tpp"
-#endif
-
 #endif

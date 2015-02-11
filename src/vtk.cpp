@@ -1,3 +1,9 @@
+#include "../include/object.h"
+
+namespace objects {
+
+template struct object<NC>;
+
 template<int nc>
 template<typename T>
 void object<nc>::put(std::fstream &f, T value) const {
@@ -83,4 +89,6 @@ void object<nc>::save(const std::string &prefix, const int step) const {
                 put<float>(f, gas().specific_energy(val(i, j, k)));
     f << std::endl;
     f.close();
+}
+
 }

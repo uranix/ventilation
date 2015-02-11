@@ -1,6 +1,9 @@
+#include "flux.h"
 #include "riemann/euler.h"
 
 using namespace riemann_solver;
+
+template struct flux<NC>;
 
 template<int nc>
 void solver_flux<nc>::solve(const state<nc> &le, const state<nc> &ri, const vec &norm, const gasinfo<nc> &gas) {

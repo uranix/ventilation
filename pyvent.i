@@ -1,5 +1,5 @@
 /* vim: set ft=cpp: */
-%module(directors="1") vent
+%module(directors="1") pyvent
 %{
 #include "vec.h"
 #include "state.h"

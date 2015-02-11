@@ -1,3 +1,9 @@
+#include "pipe.h"
+
+namespace objects {
+
+template struct pipe<NC>;
+
 template<int nc>
 void pipe<nc>::compute_outer_fluxes() {
     const double tol = 1e-4;
@@ -94,4 +100,6 @@ void pipe<nc>::integrate_rhs(state<nc> &cell, const state<nc> &source, const dou
     cf *= friction_coeff;
 
     cell.rhou(dir) -= dt * cell.density() * cell.velocity().norm2() * cf / 8;
+}
+
 }

@@ -1,4 +1,9 @@
+#include "flux.h"
+
+#include <iostream>
 #include <Eigen/Core>
+
+template struct flux<NC>;
 
 template<int nc> using Vec = Eigen::Matrix<double, nc + 4, 1>;
 template<int nc> using Mat = Eigen::Matrix<double, nc + 4, nc + 4>;

@@ -22,17 +22,7 @@ class solver {
     vec _g;
 public:
     solver(const std::vector<objects::object<nc> *> &scene,
-            const std::vector<tracer *> &tracers, const double cou)
-        : scene(scene), tracers(tracers), cou(cou)
-    {
-#if FP_TRAP
-        feenableexcept(FE_INVALID | FE_OVERFLOW);
-#endif
-        for (auto p : scene)
-            p->set_solver(this);
-        t = 0;
-        _step = 0;
-    }
+            const std::vector<tracer *> &tracers, const double cou);
     void set_gas(const gasinfo<nc> &gas) { this->_gas = gas; }
     void set_gravity(const vec &g) { this->_g = g; }
     const gasinfo<nc> &gas() const { return _gas; }
@@ -67,21 +57,7 @@ public:
         #include "GitVersion.h"
         return VERSION;
     }
-    void save(const std::string &prefix) {
-        for (auto p : scene)
-            p->save(prefix, _step);
-        for (auto t : tracers) {
-            t->template walk<nc>(prefix, _step, gas(), [this] (vec p) -> const state<nc> {
-                for (auto o : scene) {
-                    if (o->has_point(p))
-                        return o->state_at(p);
-                }
-                state<nc> wrong;
-                wrong.rho[0] = 1;
-                return wrong;
-            });
-        }
-    }
+    void save(const std::string &prefix);
     double time() const {
         return t;
     }
