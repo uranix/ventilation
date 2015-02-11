@@ -6,42 +6,7 @@ template struct pipe<NC>;
 
 template<int nc>
 void pipe<nc>::compute_outer_fluxes() {
-    const double tol = 1e-4;
-
-    int i, j, k, idir;
-    i = j = k = idir = 0;
-    vec n = dir::to_vec(dir);
-    double Sfrac = 1;
-
-    this->flux_dir(dir, idir).zero();
-    for (auto &z : this->side(dir, 0, i, j, k)) {
-        Sfrac -= z.Sfrac;
-        this->flux_dir(dir, idir).add(
-                static_cast<object<nc> *>(z.other)->val(z.ri, z.rj, z.rk),
-                this->val(dir, idir),
-                n, z.Sfrac, this->gas(), this->g() * this->h(dir));
-    }
-    if (Sfrac > tol)
-        this->flux_dir(dir, idir).add_reflect(
-                this->val(dir, idir),
-                false, n, Sfrac, this->gas(), this->g() * this->h(dir));
-
-    idir = this->n(dir);
-    dir::select(dir, i, j, k) = idir;
-    Sfrac = 1;
-    this->flux_dir(dir, idir).zero();
-    for (auto &z : this->side(dir, 1, i, j, k)) {
-        Sfrac -= z.Sfrac;
-        this->flux_dir(dir, idir).add(
-                this->val(dir, idir - 1),
-                static_cast<object<nc> *>(z.other)->val(z.ri, z.rj, z.rk),
-                n, z.Sfrac, this->gas(), this->g() * this->h(dir));
-    }
-    if (Sfrac > tol)
-        this->flux_dir(dir, idir).add_reflect(
-                this->val(dir, idir - 1),
-                true, n, Sfrac, this->gas(), this->g() * this->h(dir));
-
+    this->compute_outer_flux(dir);
 }
 
 template<int nc>

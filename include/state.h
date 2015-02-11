@@ -3,6 +3,7 @@
 
 #include "vec.h"
 #include <vector>
+#include <cassert>
 
 /*
  * Cell state, stores conservative values.
@@ -189,5 +190,27 @@ void state<nc>::from_ruT(const std::vector<double> &r, const vec &u, double T, c
 
     from_rue(r, u, eps);
 }
+
+template<class T>
+class optional {
+    T *ptr;
+public:
+    optional(std::nullptr_t) {
+        ptr = nullptr;
+    }
+    optional(T &ref) {
+        ptr = &ref;
+    }
+    operator bool() const {
+        return ptr != nullptr;
+    }
+    bool operator!() const {
+        return ptr == nullptr;
+    }
+    T &operator*() {
+        assert(!!*this);
+        return *ptr;
+    }
+};
 
 #endif

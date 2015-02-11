@@ -12,8 +12,25 @@ namespace dir {
         DIR_END = 3,
     };
 
+    enum Side {
+        BEG = 0,
+        END = 1,
+        SIDE_BEGIN = BEG,
+        SIDE_END = 2
+    };
+
+    inline Side flip(Side v) {
+        if (v == BEG)
+            return END;
+        return BEG;
+    }
+
     enum DirectionRange {
         DIRECTIONS
+    };
+
+    enum SideRange {
+        SIDES
     };
 
     class DirectionIterator {
@@ -32,8 +49,27 @@ namespace dir {
         }
     };
 
+    class SideIterator {
+        Side s;
+    public:
+        SideIterator(Side s) : s(s) { }
+        SideIterator &operator++() {
+            s = static_cast<Side>(static_cast<unsigned>(s) + 1);
+            return *this;
+        }
+        Side operator*() const {
+            return s;
+        }
+        bool operator!=(SideIterator other) {
+            return this->s != other.s;
+        }
+    };
+
     inline DirectionIterator begin(DirectionRange) { return DirectionIterator(DIR_BEGIN); }
     inline DirectionIterator end(DirectionRange) { return DirectionIterator(DIR_END); }
+
+    inline SideIterator begin(SideRange) { return SideIterator(SIDE_BEGIN); }
+    inline SideIterator end(SideRange) { return SideIterator(SIDE_END); }
 
     inline char to_char(Direction dir) {
         if (dir == dir::X)

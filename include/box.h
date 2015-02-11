@@ -31,12 +31,12 @@ struct box {
 
     typedef std::vector<Contact> ContactList;
 
-    ContactList *_side[3][2];
+    ContactList *_side[dir::DIR_END][dir::SIDE_END];
 
     vec ll, ur;
     vec h;
 
-    bool closed[3][2];
+    bool closed[dir::DIR_END][dir::SIDE_END];
 
     const std::string id;
 
@@ -50,14 +50,14 @@ struct box {
             abort();
         }
 
-        for (int d = 0; d < 3; d++)
-            for (int s = 0; s < 2; s++)
+        for (auto d : dir::DIRECTIONS)
+            for (auto s : dir::SIDES)
                 closed[d][s] = false;
 
-        for (int s = 0; s < 2; s++) {
-            _side[0][s] = new ContactList[ny * nz];
-            _side[1][s] = new ContactList[nx * nz];
-            _side[2][s] = new ContactList[nx * ny];
+        for (auto s : dir::SIDES) {
+            _side[dir::X][s] = new ContactList[ny * nz];
+            _side[dir::Y][s] = new ContactList[nx * nz];
+            _side[dir::Z][s] = new ContactList[nx * ny];
         }
     }
 
@@ -90,7 +90,7 @@ struct box {
         return ll + vec(i + .5, j + .5, k + .5) * h;
     }
 
-    ContactList &side(dir::Direction d, int s, int i, int j, int k) {
+    ContactList &side(dir::Direction d, dir::Side s, int i, int j, int k) {
         if (d == dir::X)
             return _side[d][s][j + ny * k];
         if (d == dir::Y)
@@ -99,8 +99,8 @@ struct box {
     }
 
     ~box() {
-        for (int d = 0; d < 3; d++)
-            for (int s = 0; s < 2; s++)
+        for (auto d : dir::DIRECTIONS)
+            for (auto s : dir::SIDES)
                 delete[] _side[d][s];
     }
 };

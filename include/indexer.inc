@@ -28,7 +28,15 @@
         return _fluxes[2][i + (j + k * ny) * nx];
     }
 
-    MAYBECONST flux<nc> &flux_dir(const dir::Direction dir, int i) MAYBECONST {
+    MAYBECONST flux<nc> &flux_by(const dir::Direction dir, int i, int j, int k) MAYBECONST {
+        if (dir == dir::X)
+            return x_flux(i, j, k);
+        if (dir == dir::Y)
+            return y_flux(i, j, k);
+        return z_flux(i, j, k);
+    }
+
+    MAYBECONST flux<nc> &flux_by(const dir::Direction dir, int i) MAYBECONST {
         if (dir == dir::X)
             return x_flux(i, 0, 0);
         if (dir == dir::Y)

@@ -44,17 +44,22 @@ struct flux {
         solve_and_add(left, right, norm, Sfrac, gas);
     }
 
-    void add_reflect(const state<nc> &inner, bool inner_is_left, const vec &norm, const double Sfrac, const gasinfo<nc> &gas, const vec &) {
-        state<nc> left, right;
+    void set(const state<nc> &left, const state<nc> &right, const vec &norm, const gasinfo<nc> &gas, const vec &) {
+        zero();
+        solve_and_add(left, right, norm, 1.0, gas);
+    }
 
-        if (inner_is_left) {
-            left = inner;
-            right = left;
+    void add_reflect(optional<const state<nc> > _left, optional<const state<nc> > _right, const vec &norm, const double Sfrac, const gasinfo<nc> &gas, const vec &) {
+        assert((!_left) != (!_right));
+
+        if (_left) {
+            const state<nc> &left = *_left;
+            state<nc> right(left);
             right.rhou = left.rhou - 2 * norm * dot(norm, left.rhou);
             solve_and_add(left, right, norm, Sfrac, gas);
         } else {
-            right = inner;
-            left = right;
+            const state<nc> &right = *_right;
+            state<nc> left(right);
             left.rhou = right.rhou - 2 * norm * dot(norm, right.rhou);
             solve_and_add(left, right, norm, Sfrac, gas);
         }

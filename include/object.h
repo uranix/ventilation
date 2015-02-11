@@ -24,7 +24,7 @@ template<int nc>
 struct object : public box {
     state<nc> *_states;
     state<nc> *_sources;
-    flux<nc> *_fluxes[3];
+    flux<nc> *_fluxes[dir::DIR_END];
     const solver<nc> *slvr;
 
     object(int nx, int ny, int nz, const vec &ll, const vec &ur, const std::string &id)
@@ -37,9 +37,9 @@ struct object : public box {
         _states = new state<nc>[nx * ny * nz];
         _sources = new state<nc>[nx * ny * nz];
 
-        _fluxes[0] = new flux<nc>[(nx + 1) * ny * nz];
-        _fluxes[1] = new flux<nc>[(ny + 1) * nx * nz];
-        _fluxes[2] = new flux<nc>[(nz + 1) * ny * nx];
+        _fluxes[dir::X] = new flux<nc>[(nx + 1) * ny * nz];
+        _fluxes[dir::Y] = new flux<nc>[(ny + 1) * nx * nz];
+        _fluxes[dir::Z] = new flux<nc>[(nz + 1) * ny * nx];
     }
 
     const state<nc> &state_at(vec p) const {
@@ -56,8 +56,8 @@ struct object : public box {
     virtual ~object() {
         delete[] _states;
         delete[] _sources;
-        for (int i = 0; i < 3; i++)
-            delete[] _fluxes[i];
+        for (auto d : dir::DIRECTIONS)
+            delete[] _fluxes[d];
     }
 
     void fill(const functor<nc> &f) {
@@ -107,6 +107,9 @@ struct object : public box {
     #define MAYBECONST const
     #include "indexer.inc"
     #undef MAYBECONST
+
+    void compute_inner_flux(dir::Direction);
+    void compute_outer_flux(dir::Direction);
 
     virtual void compute_inner_fluxes();
     virtual void compute_outer_fluxes();

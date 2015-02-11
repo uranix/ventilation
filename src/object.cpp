@@ -6,131 +6,92 @@ namespace objects {
 template struct object<NC>;
 
 template<int nc>
+void object<nc>::compute_inner_flux(dir::Direction dir) {
+    const vec n(dir::to_vec(dir));
+    int di = 0, dj = 0, dk = 0;
+    dir::select(dir, di, dj, dk) = 1;
+    const double hdir = h(dir);
+
+    for (int i = di; i < nx; i++)
+        for (int j = dj; j < ny; j++)
+            for (int k = dk; k < nz; k++)
+                flux_by(dir, i, j, k).set(
+                        val(i-di, j-dj, k-dk),
+                        val(i   , j   , k),
+                        n, gas(), g() * hdir);
+}
+
+template<int nc>
 void object<nc>::compute_inner_fluxes() {
-    for (int i = 1; i < nx; i++)
-        for (int j = 0; j < ny; j++)
-            for (int k = 0; k < nz; k++) {
-                vec n(1, 0, 0);
-                x_flux(i, j, k).zero();
-                x_flux(i, j, k).add(
-                        val(i-1, j, k),
-                        val(i  , j, k),
-                        n, 1.0, gas(), g() * h.x);
+    compute_inner_flux(dir::X);
+    compute_inner_flux(dir::Y);
+    compute_inner_flux(dir::Z);
+}
+
+template<int nc>
+void object<nc>::compute_outer_flux(dir::Direction dir) {
+    const vec n(dir::to_vec(dir));
+    const double tol = 1e-4;
+    const double hdir = h(dir);
+    const int ndir = dir::select(dir, nx, ny, nz);
+
+    int ilo = 0,  jlo = 0,  klo = 0;
+    int ihi = nx, jhi = ny, khi = nz;
+    int di  = 0,  dj  = 0,  dk  = 0;
+
+    dir::select(dir, ilo, jlo, klo) = 0;
+    dir::select(dir, ihi, jhi, khi) = 1;
+
+    for (int i = ilo; i < ihi; i++)
+        for (int j = jlo; j < jhi; j++)
+            for (int k = klo; k < khi; k++) {
+                double Sfrac = 1;
+                flux_by(dir, i, j, k).zero();
+                for (const auto &z : side(dir, dir::BEG, i, j, k)) {
+                    Sfrac -= z.Sfrac;
+                    flux_by(dir, i, j, k).add(
+                            static_cast<const object<nc> *>(z.other)->val(z.ri, z.rj, z.rk),
+                            val(i, j, k),
+                            n, z.Sfrac, gas(), g() * hdir
+                        );
+                }
+                if (Sfrac > tol)
+                    flux_by(dir, i, j, k).add_reflect(
+                            nullptr,
+                            val(i, j, k),
+                            n, Sfrac, gas(), g() * hdir);
             }
-    for (int i = 0; i < nx; i++)
-        for (int j = 1; j < ny; j++)
-            for (int k = 0; k < nz; k++) {
-                vec n(0, 1, 0);
-                y_flux(i, j, k).zero();
-                y_flux(i, j, k).add(
-                        val(i, j-1, k),
-                        val(i, j  , k),
-                        n, 1.0, gas(), g() * h.y);
-            }
-    for (int i = 0; i < nx; i++)
-        for (int j = 0; j < ny; j++)
-            for (int k = 1; k < nz; k++) {
-                vec n(0, 0, 1);
-                z_flux(i, j, k).zero();
-                z_flux(i, j, k).add(
-                        val(i, j, k-1),
-                        val(i, j, k  ),
-                        n, 1.0, gas(), g() * h.z);
+
+    dir::select(dir, ilo, jlo, klo) = ndir;
+    dir::select(dir, ihi, jhi, khi) = ndir + 1;
+    dir::select(dir, di, dj, dk) = 1;
+
+    for (int i = ilo; i < ihi; i++)
+        for (int j = jlo; j < jhi; j++)
+            for (int k = klo; k < khi; k++) {
+                double Sfrac = 1;
+                flux_by(dir, i, j, k).zero();
+                for (const auto &z : side(dir, dir::END, i, j, k)) {
+                    Sfrac -= z.Sfrac;
+                    flux_by(dir, i, j, k).add(
+                            val(i - di, j - dj, k - dk),
+                            static_cast<const object<nc> *>(z.other)->val(z.ri, z.rj, z.rk),
+                            n, z.Sfrac, gas(), g() * hdir
+                        );
+                }
+                if (Sfrac > tol)
+                    flux_by(dir, i, j, k).add_reflect(
+                            val(i - di, j - dj, k - dk),
+                            nullptr,
+                            n, Sfrac, gas(), g() * hdir);
             }
 }
 
 template<int nc>
 void object<nc>::compute_outer_fluxes() {
-
-    const double tol = 1e-4;
-
-    for (int j = 0; j < ny; j++)
-        for (int k = 0; k < nz; k++) {
-            vec n(1, 0, 0);
-            double Sfrac = 1;
-            int i = 0;
-
-            x_flux(i, j, k).zero();
-            for (auto &z : side(dir::X, 0, i, j, k)) {
-                Sfrac -= z.Sfrac;
-                x_flux(i, j, k).add(
-                        static_cast<object<nc> *>(z.other)->val(z.ri, z.rj, z.rk),
-                        val(i, j, k), n, z.Sfrac, gas(), g() * h.x);
-            }
-            if (Sfrac > tol)
-                x_flux(i, j, k).add_reflect(val(i, j, k), false, n, Sfrac, gas(), g() * h.x);
-
-            i = nx;
-            Sfrac = 1;
-            x_flux(i, j, k).zero();
-            for (auto &z : side(dir::X, 1, i, j, k)) {
-                Sfrac -= z.Sfrac;
-                x_flux(i, j, k).add(
-                        val(i-1, j, k),
-                        static_cast<object<nc> *>(z.other)->val(z.ri, z.rj, z.rk),
-                        n, z.Sfrac, gas(), g() * h.x);
-            }
-            if (Sfrac > tol)
-                x_flux(i, j, k).add_reflect(val(i-1, j, k), true, n, Sfrac, gas(), g() * h.x);
-        }
-    for (int i = 0; i < nx; i++)
-        for (int k = 0; k < nz; k++) {
-            vec n(0, 1, 0);
-            double Sfrac = 1;
-            int j = 0;
-
-            y_flux(i, j, k).zero();
-            for (auto &z : side(dir::Y, 0, i, j, k)) {
-                Sfrac -= z.Sfrac;
-                y_flux(i, j, k).add(
-                        static_cast<object<nc> *>(z.other)->val(z.ri, z.rj, z.rk),
-                        val(i, j, k), n, z.Sfrac, gas(), g() * h.y);
-            }
-            if (Sfrac > tol)
-                y_flux(i, j, k).add_reflect(val(i, j, k), false, n, Sfrac, gas(), g() * h.y);
-
-            j = ny;
-            Sfrac = 1;
-            y_flux(i, j, k).zero();
-            for (auto &z : side(dir::Y, 1, i, j, k)) {
-                Sfrac -= z.Sfrac;
-                y_flux(i, j, k).add(
-                        val(i, j-1, k),
-                        static_cast<object<nc> *>(z.other)->val(z.ri, z.rj, z.rk),
-                        n, z.Sfrac, gas(), g() * h.y);
-            }
-            if (Sfrac > tol)
-                y_flux(i, j, k).add_reflect(val(i, j-1, k), true, n, Sfrac, gas(), g() * h.y);
-        }
-    for (int i = 0; i < nx; i++)
-        for (int j = 0; j < ny; j++) {
-            vec n(0, 0, 1);
-            double Sfrac = 1;
-            int k = 0;
-
-            z_flux(i, j, k).zero();
-            for (auto &z : side(dir::Z, 0, i, j, k)) {
-                Sfrac -= z.Sfrac;
-                z_flux(i, j, k).add(
-                        static_cast<object<nc> *>(z.other)->val(z.ri, z.rj, z.rk),
-                        val(i, j, k), n, z.Sfrac, gas(), g() * h.z);
-            }
-            if (Sfrac > tol)
-                z_flux(i, j, k).add_reflect(val(i, j, k), false, n, Sfrac, gas(), g() * h.z);
-
-            k = nz;
-            Sfrac = 1;
-            z_flux(i, j, k).zero();
-            for (auto &z : side(dir::Z, 1, i, j, k)) {
-                Sfrac -= z.Sfrac;
-                z_flux(i, j, k).add(
-                        val(i, j, k-1),
-                        static_cast<object<nc> *>(z.other)->val(z.ri, z.rj, z.rk),
-                        n, z.Sfrac, gas(), g() * h.z);
-            }
-            if (Sfrac > tol)
-                z_flux(i, j, k).add_reflect(val(i, j, k-1), true, n, Sfrac, gas(), g() * h.z);
-        }
+    compute_outer_flux(dir::X);
+    compute_outer_flux(dir::Y);
+    compute_outer_flux(dir::Z);
 }
 
 template<int nc>

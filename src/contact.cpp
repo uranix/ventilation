@@ -25,12 +25,12 @@ double intersect_rect(dir::Direction d, const vec &all, const vec &aur,
     return S;
 }
 
-double try_side(dir::Direction d, int s, const box &a, const box &b, double tol) {
-    if (a.closed[d][s] || b.closed[d][1-s])
+double try_side(dir::Direction d, dir::Side s, const box &a, const box &b, double tol) {
+    if (a.closed[d][s] || b.closed[d][flip(s)])
         return -1;
 
-    double ax = (s == 0) ? a.ll(d) : a.ur(d);
-    double bx = (s == 1) ? b.ll(d) : b.ur(d);
+    double ax = (s == dir::BEG) ? a.ll(d) : a.ur(d);
+    double bx = (s == dir::END) ? b.ll(d) : b.ur(d);
 
     if (fabs(ax - bx) > tol)
         return -1;
@@ -48,7 +48,7 @@ void connect(box &a, box &b) {
     bool ok = false;
 
     for (auto d : dir::DIRECTIONS)
-        for (int s = 0; s < 2; s++) {
+        for (auto s : dir::SIDES) {
             bool check = try_side(d, s, a, b, tol) > 0;
             if (check && found) {
                 std::cerr << "Multiple contacts! This should not have happened." << std::endl;
@@ -61,7 +61,8 @@ void connect(box &a, box &b) {
                 continue;
 
             std::cout << "Found contact in " << dir::to_char(d)
-                << " direction between " << (s ? a.id : b.id) << " -> " << (s ? b.id : a.id) << std::endl;
+                << " direction between " << (s == dir::BEG ? a.id : b.id)
+                << " -> " << (s == dir::BEG ? b.id : a.id) << std::endl;
 
             double Sa = a.h.x * a.h.y * a.h.z / a.h(d);
             double Sb = b.h.x * b.h.y * b.h.z / b.h(d);
@@ -71,10 +72,17 @@ void connect(box &a, box &b) {
             int blo[3];
             int bhi[3];
             for (auto dd : dir::DIRECTIONS) {
-                alo[dd] = (d != dd) ? 0 : (s * (a.n(dd) - 1));
-                ahi[dd] = (d != dd) ? a.n(dd) : (s * (a.n(dd) - 1) + 1);
-                blo[dd] = (d != dd) ? 0 : ((1 - s) * (b.n(dd) - 1));
-                bhi[dd] = (d != dd) ? b.n(dd) : ((1 - s) * (b.n(dd) - 1) + 1);
+                if (d == dd) {
+                    alo[dd] = (s == dir::BEG) ? 0 : (a.n(dd) - 1);
+                    ahi[dd] = (s == dir::BEG) ? 1 : a.n(dd);
+                    blo[dd] = (s == dir::END) ? 0 : (b.n(dd) - 1);
+                    bhi[dd] = (s == dir::END) ? 1 : b.n(dd);
+                } else {
+                    alo[dd] = 0;
+                    ahi[dd] = a.n(dd);
+                    blo[dd] = 0;
+                    bhi[dd] = b.n(dd);
+                }
             }
 
 #define LOOP(x, dir) for (int x ## dir = x ## lo[dir]; x ## dir < x ## hi[dir]; x ## dir ++)
@@ -98,7 +106,7 @@ void connect(box &a, box &b) {
                 if (S > 0) {
                     a.side(d, s, a0, a1, a2).push_back(
                         box::Contact(&b, S / Sa, b0, b1, b2));
-                    b.side(d, 1 - s, b0, b1, b2).push_back(
+                    b.side(d, flip(s), b0, b1, b2).push_back(
                         box::Contact(&a, S / Sb, a0, a1, a2));
                 }
             }

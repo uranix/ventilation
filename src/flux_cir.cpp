@@ -184,6 +184,17 @@ Vec<nc> formLambda(const Vec<nc> &U, const vec &n, const gasinfo<nc> &gas) {
     return lam;
 }
 
+struct EntropyFix {
+    const double lcut;
+    const double eps;
+    EntropyFix(const double c, const double eps = .05) : lcut(c * eps), eps(eps) {  }
+    double operator()(const double &lam) const {
+        if (fabs(lam) < lcut)
+            return (lcut + lcut + lam + lam) / (2 * lcut);
+        return lam;
+    }
+};
+
 template<int nc>
 void solver_flux<nc>::solve(const state<nc> &le, const state<nc> &ri, const vec &n, const gasinfo<nc> &gas) {
     Vec<nc> UL, UR, U, lam;
@@ -218,7 +229,8 @@ void solver_flux<nc>::solve(const state<nc> &le, const state<nc> &ri, const vec 
     }
 #endif
 
-    F = .5 * (FL + FR + iOm * lam.cwiseAbs().cwiseProduct(Om * (UL - UR)));
+    const double c = 0.5 * fabs(lam[nc + 3] - lam[nc + 2]);
+    F = .5 * (FL + FR + iOm * lam.cwiseAbs().unaryExpr(EntropyFix(c)).cwiseProduct(Om * (UL - UR)));
 
     fden[0] = F[0];
     for (int i = 1; i < nc; i++) {
