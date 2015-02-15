@@ -1,7 +1,7 @@
 #ifndef __FAN_H__
 #define __FAN_H__
 
-#include "pipe.h"
+#include "../include/pipe.h"
 
 namespace objects {
 

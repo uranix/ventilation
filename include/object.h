@@ -5,8 +5,7 @@
 #include "state.h"
 #include "flux.h"
 
-#include <iostream>
-#include <fstream>
+#include <vector>
 #include <algorithm>
 
 template<int nc>
@@ -22,50 +21,25 @@ namespace objects {
 
 template<int nc>
 struct object : public box {
-    state<nc> *_states;
-    state<nc> *_sources;
-    flux<nc> *_fluxes[dir::DIR_END];
+private:
+    std::vector<state<nc>> _states;
+    std::vector<state<nc>> _sources;
+    std::vector<flux<nc>> _fluxes[dir::DIR_END];
     const solver<nc> *slvr;
-
-    object(int nx, int ny, int nz, const vec &ll, const vec &ur, const std::string &id)
-        : box(nx, ny, nz, ll, ur, id), slvr(nullptr)
-    {
-        std::cout << "Using scene object `" << id << "' with dims = "
-            << "(" << nx << ", " << ny << ", " << nz << ") and h = "
-            << "(" << h.x << ", " << h.y << ", " << h.z << ")" << std::endl;
-
-        _states = new state<nc>[nx * ny * nz];
-        _sources = new state<nc>[nx * ny * nz];
-
-        _fluxes[dir::X] = new flux<nc>[(nx + 1) * ny * nz];
-        _fluxes[dir::Y] = new flux<nc>[(ny + 1) * nx * nz];
-        _fluxes[dir::Z] = new flux<nc>[(nz + 1) * ny * nx];
-    }
-
-    const state<nc> &state_at(vec p) const {
-        int i, j, k;
-        vec ofs;
-        locate_point(p, i, j, k, ofs);
-        return val(i, j, k);
-    }
+public:
+    object(int nx, int ny, int nz, const vec &ll, const vec &ur, const std::string &id);
+    virtual ~object() { }
 
     void set_solver(const ::solver<nc> *slvr);
+    static constexpr double timestep_unconstrained = 1e20;
     const vec &g() const;
     const gasinfo<nc> &gas() const;
-
-    virtual ~object() {
-        delete[] _states;
-        delete[] _sources;
-        for (auto d : dir::DIRECTIONS)
-            delete[] _fluxes[d];
-    }
 
     void fill(const functor<nc> &f) {
         for (int i = 0; i < nx; i++)
             for (int j = 0; j < ny; j++)
-                for (int k = 0; k < nz; k++) {
+                for (int k = 0; k < nz; k++)
                     f(center(i, j, k), ref(i, j, k));
-                }
     }
 
     void fill_sources(const functor<nc> &f) {
@@ -101,6 +75,13 @@ struct object : public box {
         return val(0, 0, i);
     }
 
+    const state<nc> &state_at(vec p) const {
+        int i, j, k;
+        vec ofs;
+        locate_point(p, i, j, k, ofs);
+        return val(i, j, k);
+    }
+
     #define MAYBECONST
     #include "indexer.inc"
     #undef MAYBECONST
@@ -108,23 +89,25 @@ struct object : public box {
     #include "indexer.inc"
     #undef MAYBECONST
 
-    void compute_inner_flux(dir::Direction);
-    void compute_outer_flux(dir::Direction);
-
-    virtual void compute_inner_fluxes();
-    virtual void compute_outer_fluxes();
-
-    static constexpr double timestep_unconstrained = 1e20;
-    virtual double get_max_dt() const;
-
+    /* Per cell/face virtuals */
     virtual void integrate(state<nc> &cell, const flux<nc> &left, const flux<nc> &right,
             dir::Direction dir, double h, const double t, const double dt);
     virtual void integrate_rhs(state<nc> &cell, const state<nc> &source, const double t, const double dt);
-    virtual void integrate(const double t, const double dt);
-    virtual void integrate_rhs(const double t, const double dt);
 
-    template<typename T>
-    void put(std::fstream &f, T value) const;
+    /* Per direction virtuals */
+    virtual void compute_outer_flux(dir::Direction);
+    virtual void integrate_by(dir::Direction dir, const double t, const double dt);
+
+    /* Per object vitruals */
+    virtual double get_max_dt() const;
+
+    /* Regular methods */
+    void compute_inner_flux(dir::Direction);
+    void compute_inner_fluxes();
+    void compute_outer_fluxes();
+
+    void integrate(const double t, const double dt);
+    void integrate_rhs(const double t, const double dt);
 
     void save(const std::string &prefix, const int step) const;
 };

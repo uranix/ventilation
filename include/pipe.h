@@ -29,13 +29,13 @@ struct pipe : public object<nc> {
 
     virtual ~pipe() { }
 
-    virtual void compute_outer_fluxes() override;
-
-    virtual double get_max_dt() const override;
-
-    virtual void integrate(const double t, const double dt) override;
     virtual void integrate(state<nc> &cell, const flux<nc> &left, const flux<nc> &right, dir::Direction dir, double h, const double t, double dt) override;
     virtual void integrate_rhs(state<nc> &cell, const state<nc> &source, const double t, const double dt) override;
+
+    virtual void compute_outer_flux(dir::Direction) override;
+    virtual void integrate_by(dir::Direction, const double t, const double dt) override;
+
+    virtual double get_max_dt() const override;
 };
 
 }

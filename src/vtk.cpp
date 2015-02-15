@@ -1,12 +1,12 @@
 #include "../include/object.h"
+#include <fstream>
 
 namespace objects {
 
 template struct object<NC>;
 
-template<int nc>
 template<typename T>
-void object<nc>::put(std::fstream &f, T value) const {
+void put(std::fstream &f, T value) {
     union {
         char buf[sizeof(T)];
         T val;

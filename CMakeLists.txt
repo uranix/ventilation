@@ -15,6 +15,10 @@ set(vent_SOURCES
 	src/object.cpp
 	src/pipe.cpp
 	src/solver.cpp
+	src/atm.cpp
+	src/fan.cpp
+	src/room.cpp
+	src/pulse.cpp
 	)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Werror -Wextra -g")
