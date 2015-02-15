@@ -29,7 +29,6 @@ public:
     int step() const { return _step; }
 
     double estimate_timestep(const double dtlimit);
-    void compute_fluxes();
     void integrate(const double dtlimit
             = objects::object<nc>::timestep_unconstrained);
     std::string version() const {
