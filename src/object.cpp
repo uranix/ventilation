@@ -188,6 +188,14 @@ double object<nc>::get_max_dt() const {
 
 /* Regular methods */
 template<int nc>
+void object<nc>::integrate_rhs(const double t, const double dt) {
+    for (int i = 0; i < nx; i++)
+        for (int j = 0; j < ny; j++)
+            for (int k = 0; k < nz; k++)
+                integrate_rhs(ref(i, j, k), this->source(i, j, k), t, dt);
+}
+
+template<int nc>
 void object<nc>::compute_inner_fluxes() {
     compute_inner_flux(dir::X);
     compute_inner_flux(dir::Y);
@@ -206,14 +214,6 @@ void object<nc>::integrate(const double t, const double dt) {
     integrate_by(dir::X, t, dt);
     integrate_by(dir::Y, t, dt);
     integrate_by(dir::Z, t, dt);
-}
-
-template<int nc>
-void object<nc>::integrate_rhs(const double t, const double dt) {
-    for (int i = 0; i < nx; i++)
-        for (int j = 0; j < ny; j++)
-            for (int k = 0; k < nz; k++)
-                integrate_rhs(ref(i, j, k), this->source(i, j, k), t, dt);
 }
 
 }
