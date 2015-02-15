@@ -60,17 +60,21 @@ void connect(box &a, box &b) {
             if (!check)
                 continue;
 
-            std::cout << "Found contact in " << dir::to_char(d)
-                << " direction between " << (s == dir::BEG ? a.id : b.id)
-                << " -> " << (s == dir::BEG ? b.id : a.id) << std::endl;
+            std::cout << "Found contact in "
+                << dir::to_char(d)
+                << " direction between "
+                << (s == dir::BEG ? a.id : b.id)
+                << " -> "
+                << (s == dir::END ? a.id : b.id)
+                << std::endl;
 
             double Sa = a.h.x * a.h.y * a.h.z / a.h(d);
             double Sb = b.h.x * b.h.y * b.h.z / b.h(d);
 
-            int alo[3];
-            int ahi[3];
-            int blo[3];
-            int bhi[3];
+            int alo[dir::DIR_END];
+            int ahi[dir::DIR_END];
+            int blo[dir::DIR_END];
+            int bhi[dir::DIR_END];
             for (auto dd : dir::DIRECTIONS) {
                 if (d == dd) {
                     alo[dd] = (s == dir::BEG) ? 0 : (a.n(dd) - 1);

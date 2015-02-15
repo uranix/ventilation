@@ -2,7 +2,6 @@
 #define __FAN_H__
 
 #include "pipe.h"
-#include <iostream>
 
 namespace objects {
 

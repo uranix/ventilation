@@ -114,6 +114,7 @@ struct object : public box {
     virtual void compute_inner_fluxes();
     virtual void compute_outer_fluxes();
 
+    static constexpr double timestep_unconstrained = 1e20;
     virtual double get_max_dt() const;
 
     virtual void integrate(state<nc> &cell, const flux<nc> &left, const flux<nc> &right,
@@ -126,8 +127,6 @@ struct object : public box {
     void put(std::fstream &f, T value) const;
 
     void save(const std::string &prefix, const int step) const;
-
-    void debug_avg() const;
 };
 
 }

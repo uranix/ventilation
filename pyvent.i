@@ -61,7 +61,6 @@ namespace objects {
     struct object : public box {
         void fill(const functor<nc> &f);
         void fill_sources(const functor<nc> &f);
-        void debug_avg();
     };
     template<int nc>
     struct room : public object<nc> {

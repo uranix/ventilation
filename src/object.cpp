@@ -7,7 +7,7 @@ template struct object<NC>;
 
 template<int nc>
 void object<nc>::compute_inner_flux(dir::Direction dir) {
-    const vec n(dir::to_vec(dir));
+    const vec n(dir);
     int di = 0, dj = 0, dk = 0;
     dir::select(dir, di, dj, dk) = 1;
     const double hdir = h(dir);
@@ -30,7 +30,7 @@ void object<nc>::compute_inner_fluxes() {
 
 template<int nc>
 void object<nc>::compute_outer_flux(dir::Direction dir) {
-    const vec n(dir::to_vec(dir));
+    const vec n(dir);
     const double tol = 1e-4;
     const double hdir = h(dir);
     const int ndir = dir::select(dir, nx, ny, nz);
@@ -163,17 +163,6 @@ void object<nc>::integrate_rhs(const double t, const double dt) {
         for (int j = 0; j < ny; j++)
             for (int k = 0; k < nz; k++)
                 integrate_rhs(ref(i, j, k), this->source(i, j, k), t, dt);
-}
-
-template<int nc>
-void object<nc>::debug_avg() const {
-    double Tavg = 0;
-    for (int i = 0; i < nx; i++)
-        for (int j = 0; j < ny; j++)
-            for (int k = 0; k < nz; k++)
-                Tavg += gas().temperature(val(i, j, k));
-    Tavg /= nx * ny * nz;
-    std::cout << "Tavg = " << Tavg << std::endl;
 }
 
 template<int nc>

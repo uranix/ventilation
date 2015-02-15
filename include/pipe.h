@@ -18,8 +18,8 @@ struct pipe : public object<nc> {
             dir::from_char(cdir) == dir::Z ? n : 1, ll, ur, id),
         dir(dir::from_char(cdir)), friction_coeff(friction_coeff)
     {
-        for (int d = 0; d < 3; d++)
-            for (int s = 0; s < 2; s++)
+        for (auto d : dir::DIRECTIONS)
+            for (auto s : dir::SIDES)
                 this->closed[d][s] = dir != d;
 
         surface = this->h.x * this->h.y * this->h.z / this->h(dir);
@@ -33,7 +33,7 @@ struct pipe : public object<nc> {
 
     virtual double get_max_dt() const override;
 
-    virtual void integrate(const double t, const double dt) override ;
+    virtual void integrate(const double t, const double dt) override;
     virtual void integrate(state<nc> &cell, const flux<nc> &left, const flux<nc> &right, dir::Direction dir, double h, const double t, double dt) override;
     virtual void integrate_rhs(state<nc> &cell, const state<nc> &source, const double t, const double dt) override;
 };

@@ -1,5 +1,9 @@
 #include "../include/solver.h"
 
+#if FP_TRAP
+# include <fenv.h>
+#endif
+
 template class solver<NC>;
 
 template<int nc>
@@ -32,4 +36,35 @@ void solver<nc>::save(const std::string &prefix) {
             return wrong;
         });
     }
+}
+
+template<int nc>
+double solver<nc>::estimate_timestep(const double dtlimit) {
+    double dtmin = dtlimit;
+    for (auto p : scene) {
+        double dt = p->get_max_dt();
+        if (dt < dtmin)
+            dtmin = dt;
+    }
+    return cou * dtmin;
+}
+
+template<int nc>
+void solver<nc>::compute_fluxes() {
+    for (auto p : scene) {
+        p->compute_inner_fluxes();
+        p->compute_outer_fluxes();
+    }
+}
+
+template<int nc>
+void solver<nc>::integrate(const double dtlimit) {
+    compute_fluxes();
+    dt = estimate_timestep(dtlimit);
+    for (auto p : scene) {
+        p->integrate_rhs(t, dt);
+        p->integrate(t, dt);
+    }
+    t += dt;
+    _step++;
 }
