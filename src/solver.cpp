@@ -50,16 +50,53 @@ double solver<nc>::estimate_timestep(const double dtlimit) {
 }
 
 template<int nc>
+void solver<nc>::compute_flux(dir::Direction dir, const double dt) {
+    for (auto p : scene) {
+        p->compute_inner_flux(dir, dt / p->h(dir));
+        p->compute_outer_flux(dir);
+    }
+}
+
+template<int nc>
+void solver<nc>::compute_slope(dir::Direction dir) {
+    for (auto p : scene)
+        p->compute_inner_slope(dir);
+}
+
+template<int nc>
+void solver<nc>::integrate_by(dir::Direction dir, const double t, const double dt) {
+    for (auto p : scene)
+        p->integrate_by(dir, t, dt);
+}
+
+template<int nc>
+void solver<nc>::integrate_rhs(const double t, const double dt) {
+    for (auto p : scene)
+        p->integrate_rhs(t, dt);
+}
+
+template<int nc>
 void solver<nc>::integrate(const double dtlimit) {
     dt = estimate_timestep(dtlimit);
-    for (auto p : scene) {
-        p->compute_inner_fluxes();
-        p->compute_outer_fluxes();
-    }
-    for (auto p : scene) {
-        p->integrate_rhs(t, dt);
-        p->integrate(t, dt);
-    }
+#if 0
+    compute_flux(dir::X);
+    compute_flux(dir::Y);
+    compute_flux(dir::Z);
+    integrate_by(dir::X, t, dt);
+    integrate_by(dir::Y, t, dt);
+    integrate_by(dir::Z, t, dt);
+#else
+    compute_slope(dir::X);
+    compute_flux(dir::X, dt);
+    integrate_by(dir::X, t, dt);
+    compute_slope(dir::Y);
+    compute_flux(dir::Y, dt);
+    integrate_by(dir::Y, t, dt);
+    compute_slope(dir::Z);
+    compute_flux(dir::Z, dt);
+    integrate_by(dir::Z, t, dt);
+#endif
+    integrate_rhs(t, dt);
     t += dt;
     _step++;
 }

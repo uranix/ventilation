@@ -24,6 +24,10 @@ object<nc>:: object(
     _fluxes[dir::X].resize((nx + 1) * ny * nz);
     _fluxes[dir::Y].resize((ny + 1) * nx * nz);
     _fluxes[dir::Z].resize((nz + 1) * ny * nx);
+
+    _slopes[dir::X].resize((nx + 1) * ny * nz);
+    _slopes[dir::Y].resize((ny + 1) * nx * nz);
+    _slopes[dir::Z].resize((nz + 1) * ny * nx);
 }
 
 template<int nc>
@@ -63,26 +67,41 @@ void object<nc>::integrate_rhs(state<nc> &cell, const state<nc> &source, const d
 
 /* Per direction virtuals */
 template<int nc>
-void object<nc>::compute_inner_flux(dir::Direction dir) {
+void object<nc>::compute_inner_flux(dir::Direction dir, const double dt_h) {
     const vec n(dir);
     int di = 0, dj = 0, dk = 0;
     dir::select(dir, di, dj, dk) = 1;
-    const double hdir = h(dir);
+
+    slope<nc> baz;
 
     for (int i = di; i < nx; i++)
         for (int j = dj; j < ny; j++)
             for (int k = dk; k < nz; k++)
-                flux_by(dir, i, j, k).set(
+                flux_by(dir, i, j, k).set_inner(
                         val(i-di, j-dj, k-dk),
                         val(i   , j   , k),
-                        n, gas(), g() * hdir);
+                        baz, baz, baz,
+                        n, dt_h, gas());
+}
+
+template<int nc>
+void object<nc>::compute_inner_slope(dir::Direction dir) {
+    int di = 0, dj = 0, dk = 0;
+    dir::select(dir, di, dj, dk) = 1;
+
+    for (int i = di; i < nx; i++)
+        for (int j = dj; j < ny; j++)
+            for (int k = dk; k < nz; k++)
+                slope_by(dir, i, j, k) = slope<nc>(
+                        val(i-di, j-dj, k-dk),
+                        val(i   , j   , k),
+                        dir, gas());
 }
 
 template<int nc>
 void object<nc>::compute_outer_flux(dir::Direction dir) {
     const vec n(dir);
     const double tol = 1e-4;
-    const double hdir = h(dir);
     const int ndir = dir::select(dir, nx, ny, nz);
 
     int ilo = 0,  jlo = 0,  klo = 0;
@@ -99,17 +118,16 @@ void object<nc>::compute_outer_flux(dir::Direction dir) {
                 flux_by(dir, i, j, k).zero();
                 for (const auto &z : side(dir, dir::BEG, i, j, k)) {
                     Srefl -= z.Sfrac;
-                    flux_by(dir, i, j, k).add(
+                    flux_by(dir, i, j, k).add_outer(
                             static_cast<const object<nc> *>(z.other)->val(z.ri, z.rj, z.rk),
                             val(i, j, k),
-                            n, z.Sfrac, gas(), g() * hdir
-                        );
+                            n, z.Sfrac, gas());
                 }
                 if (Srefl > tol)
-                    flux_by(dir, i, j, k).add_reflect(
+                    flux_by(dir, i, j, k).add_outer_reflect(
                             nullptr,
                             val(i, j, k),
-                            n, Srefl, gas(), g() * hdir);
+                            n, Srefl, gas());
             }
 
     dir::select(dir, ilo, jlo, klo) = ndir;
@@ -123,17 +141,16 @@ void object<nc>::compute_outer_flux(dir::Direction dir) {
                 flux_by(dir, i, j, k).zero();
                 for (const auto &z : side(dir, dir::END, i, j, k)) {
                     Srefl -= z.Sfrac;
-                    flux_by(dir, i, j, k).add(
+                    flux_by(dir, i, j, k).add_outer(
                             val(i - di, j - dj, k - dk),
                             static_cast<const object<nc> *>(z.other)->val(z.ri, z.rj, z.rk),
-                            n, z.Sfrac, gas(), g() * hdir
-                        );
+                            n, z.Sfrac, gas());
                 }
                 if (Srefl > tol)
-                    flux_by(dir, i, j, k).add_reflect(
+                    flux_by(dir, i, j, k).add_outer_reflect(
                             val(i - di, j - dj, k - dk),
                             nullptr,
-                            n, Srefl, gas(), g() * hdir);
+                            n, Srefl, gas());
             }
 }
 
@@ -193,27 +210,6 @@ void object<nc>::integrate_rhs(const double t, const double dt) {
         for (int j = 0; j < ny; j++)
             for (int k = 0; k < nz; k++)
                 integrate_rhs(ref(i, j, k), this->source(i, j, k), t, dt);
-}
-
-template<int nc>
-void object<nc>::compute_inner_fluxes() {
-    compute_inner_flux(dir::X);
-    compute_inner_flux(dir::Y);
-    compute_inner_flux(dir::Z);
-}
-
-template<int nc>
-void object<nc>::compute_outer_fluxes() {
-    compute_outer_flux(dir::X);
-    compute_outer_flux(dir::Y);
-    compute_outer_flux(dir::Z);
-}
-
-template<int nc>
-void object<nc>::integrate(const double t, const double dt) {
-    integrate_by(dir::X, t, dt);
-    integrate_by(dir::Y, t, dt);
-    integrate_by(dir::Z, t, dt);
 }
 
 }

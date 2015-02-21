@@ -10,6 +10,7 @@ message(STATUS "Configured version is ${GIT_VERSION}")
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/GitVersion.h.in ${CMAKE_CURRENT_BINARY_DIR}/GitVersion.h @ONLY)
 
 set(vent_SOURCES
+	src/slope.cpp
 	src/contact.cpp
 	src/vtk.cpp
 	src/object.cpp
@@ -67,6 +68,8 @@ add_definitions("-DNC=${NC}")
 
 find_package(SWIG 3.0 REQUIRED)
 include(${SWIG_USE_FILE})
+find_package(Eigen3 REQUIRED)
+include_directories(${EIGEN3_INCLUDE_DIR})
 
 find_package(PythonLibs)
 include_directories(${PYTHON_INCLUDE_PATH})
@@ -74,7 +77,6 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 include_directories(include/)
-include_directories(include/eigen/)
 add_library(vent SHARED ${vent_SOURCES})
 
 SET_SOURCE_FILES_PROPERTIES(pyvent.i PROPERTIES CPLUSPLUS ON)

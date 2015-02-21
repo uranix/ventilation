@@ -3,6 +3,7 @@
 
 #include "box.h"
 #include "state.h"
+#include "slope.h"
 #include "flux.h"
 
 #include <vector>
@@ -25,6 +26,7 @@ private:
     std::vector<state<nc>> _states;
     std::vector<state<nc>> _sources;
     std::vector<flux<nc>> _fluxes[dir::DIR_END];
+    std::vector<slope<nc>> _slopes[dir::DIR_END];
     const solver<nc> *slvr;
 public:
     object(int nx, int ny, int nz, const vec &ll, const vec &ur, const std::string &id);
@@ -102,7 +104,9 @@ public:
     virtual double get_max_dt() const;
 
     /* Regular methods */
-    void compute_inner_flux(dir::Direction);
+    void compute_inner_flux(dir::Direction, const double dt_h);
+    void compute_inner_slope(dir::Direction);
+    void compute_inner_slopes();
     void compute_inner_fluxes();
     void compute_outer_fluxes();
 

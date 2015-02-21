@@ -196,7 +196,10 @@ struct EntropyFix {
 };
 
 template<int nc>
-void solver_flux<nc>::solve(const state<nc> &le, const state<nc> &ri, const vec &n, const gasinfo<nc> &gas) {
+void solver_flux<nc>::solve(
+        const state<nc> &le, const state<nc> &ri,
+        const slope<nc> &ls, const slope<nc> &cs, const slope<nc> &rs,
+        const vec &n, const gasinfo<nc> &gas) {
     Vec<nc> UL, UR, U, lam;
     Vec<nc> FL, FR, F;
     Mat<nc> Om, iOm;

@@ -28,12 +28,41 @@
         return _fluxes[2][i + (j + k * ny) * nx];
     }
 
+    MAYBECONST slope<nc> &x_slope(int i, int j, int k) MAYBECONST {
+        assert(i >= 0 && i <= nx);
+        assert(j >= 0 && j < ny);
+        assert(k >= 0 && k < nz);
+        return _slopes[0][i + (j + k * ny) * (nx + 1)];
+    }
+
+    MAYBECONST slope<nc> &y_slope(int i, int j, int k) MAYBECONST {
+        assert(i >= 0 && i < nx);
+        assert(j >= 0 && j <= ny);
+        assert(k >= 0 && k < nz);
+        return _slopes[1][i + (j + k * (ny + 1)) * nx];
+    }
+
+    MAYBECONST slope<nc> &z_slope(int i, int j, int k) MAYBECONST {
+        assert(i >= 0 && i < nx);
+        assert(j >= 0 && j < ny);
+        assert(k >= 0 && k <= nz);
+        return _slopes[2][i + (j + k * ny) * nx];
+    }
+
     MAYBECONST flux<nc> &flux_by(const dir::Direction dir, int i, int j, int k) MAYBECONST {
         if (dir == dir::X)
             return x_flux(i, j, k);
         if (dir == dir::Y)
             return y_flux(i, j, k);
         return z_flux(i, j, k);
+    }
+
+    MAYBECONST slope<nc> &slope_by(const dir::Direction dir, int i, int j, int k) MAYBECONST {
+        if (dir == dir::X)
+            return x_slope(i, j, k);
+        if (dir == dir::Y)
+            return y_slope(i, j, k);
+        return z_slope(i, j, k);
     }
 
     MAYBECONST flux<nc> &flux_by(const dir::Direction dir, int i) MAYBECONST {
