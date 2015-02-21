@@ -2,20 +2,16 @@
 
 namespace objects {
 
-template struct pipe<NC>;
-
-template<int nc>
-void pipe<nc>::integrate(state<nc> &cell, const flux<nc> &left, const flux<nc> &right, dir::Direction, double h, const double, const double dt) {
+void pipe::integrate(state &cell, const flux &left, const flux &right, dir::Direction, double h, const double, const double dt) {
     for (int i = 0; i < nc; i++)
         cell.rho[i] -= dt * (right.fdens[i] - left.fdens[i]) / h;
 
     cell.rhou(dir) -= dt * (right.fmom(dir) - left.fmom(dir)) / h;
-    cell.rhoE -= dt * (right.fener - left.fener) / h;
+    cell.e -= dt * (right.fener - left.fener) / h;
 }
 
-template<int nc>
-void pipe<nc>::integrate_rhs(state<nc> &cell, const state<nc> &source, const double t, const double dt) {
-    object<nc>::integrate_rhs(cell, source, t, dt);
+void pipe::integrate_rhs(state &cell, const state &source, const double t, const double dt) {
+    object::integrate_rhs(cell, source, t, dt);
 
     double Dg = 4 * surface / perimeter;
     double Re = 1 + cell.rhou.norm() * Dg / this->gas().viscosity(cell);
@@ -26,24 +22,21 @@ void pipe<nc>::integrate_rhs(state<nc> &cell, const state<nc> &source, const dou
     cell.rhou(dir) -= dt * cell.density() * cell.velocity().norm2() * cf / 8;
 }
 
-template<int nc>
-void pipe<nc>::compute_outer_flux(dir::Direction dir) {
+void pipe::compute_outer_flux(dir::Direction dir) {
     if (this->dir != dir)
         return;
 
-    object<nc>::compute_outer_flux(dir);
+    object::compute_outer_flux(dir);
 }
 
-template<int nc>
-void pipe<nc>::integrate_by(dir::Direction dir, const double t, const double dt) {
+void pipe::integrate_by(dir::Direction dir, const double t, const double dt) {
     if (dir != this->dir)
         return;
 
-    object<nc>::integrate_by(dir, t, dt);
+    object::integrate_by(dir, t, dt);
 }
 
-template<int nc>
-double pipe<nc>::get_max_dt() const {
+double pipe::get_max_dt() const {
     double cmax = 0;
     double vmax = 0;
 

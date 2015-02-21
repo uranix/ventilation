@@ -3,55 +3,53 @@
 
 #include "box.h"
 #include "state.h"
+#include "gasinfo.h"
 #include "slope.h"
 #include "flux.h"
 
 #include <vector>
 #include <algorithm>
 
-template<int nc>
 struct functor {
-    virtual void operator()(const vec &, state<nc> &) const = 0;
+    virtual void operator()(const vec &, state &) const = 0;
     virtual ~functor() { }
 };
 
-template<int nc>
 class solver;
 
 namespace objects {
 
-template<int nc>
 struct object : public box {
 private:
-    std::vector<state<nc>> _states;
-    std::vector<state<nc>> _sources;
-    std::vector<flux<nc>> _fluxes[dir::DIR_END];
-    std::vector<slope<nc>> _slopes[dir::DIR_END];
-    const solver<nc> *slvr;
+    std::vector<state> _states;
+    std::vector<state> _sources;
+    std::vector<flux> _fluxes[dir::DIR_END];
+    std::vector<slope> _slopes[dir::DIR_END];
+    const solver *slvr;
 public:
     object(int nx, int ny, int nz, const vec &ll, const vec &ur, const std::string &id);
     virtual ~object() { }
 
-    void set_solver(const ::solver<nc> *slvr);
+    void set_solver(const ::solver *slvr);
     static constexpr double timestep_unconstrained = 1e20;
     const vec &g() const;
-    const gasinfo<nc> &gas() const;
+    const gasinfo &gas() const;
 
-    void fill(const functor<nc> &f) {
+    void fill(const functor &f) {
         for (int i = 0; i < nx; i++)
             for (int j = 0; j < ny; j++)
                 for (int k = 0; k < nz; k++)
                     f(center(i, j, k), ref(i, j, k));
     }
 
-    void fill_sources(const functor<nc> &f) {
+    void fill_sources(const functor &f) {
         for (int i = 0; i < nx; i++)
             for (int j = 0; j < ny; j++)
                 for (int k = 0; k < nz; k++)
                     f(center(i, j, k), this->source(i, j, k));
     }
 
-    const state<nc> &val(int i, int j, int k) const {
+    const state &val(int i, int j, int k) const {
         assert(i >= 0 && i < nx);
         assert(j >= 0 && j < ny);
         assert(k >= 0 && k < nz);
@@ -60,7 +58,7 @@ public:
         return _states[idx];
     }
 
-    state<nc> &ref(int i, int j, int k) {
+    state &ref(int i, int j, int k) {
         assert(i >= 0 && i < nx);
         assert(j >= 0 && j < ny);
         assert(k >= 0 && k < nz);
@@ -69,7 +67,7 @@ public:
         return _states[idx];
     }
 
-    const state<nc> val(dir::Direction dir, int i) const {
+    const state val(dir::Direction dir, int i) const {
         if (dir == dir::X)
             return val(i, 0, 0);
         if (dir == dir::Y)
@@ -77,7 +75,7 @@ public:
         return val(0, 0, i);
     }
 
-    const state<nc> &state_at(vec p) const {
+    const state &state_at(vec p) const {
         int i, j, k;
         vec ofs;
         locate_point(p, i, j, k, ofs);
@@ -92,9 +90,9 @@ public:
     #undef MAYBECONST
 
     /* Per cell/face virtuals */
-    virtual void integrate(state<nc> &cell, const flux<nc> &left, const flux<nc> &right,
+    virtual void integrate(state &cell, const flux &left, const flux &right,
             dir::Direction dir, double h, const double t, const double dt);
-    virtual void integrate_rhs(state<nc> &cell, const state<nc> &source, const double t, const double dt);
+    virtual void integrate_rhs(state &cell, const state &source, const double t, const double dt);
 
     /* Per direction virtuals */
     virtual void compute_outer_flux(dir::Direction);

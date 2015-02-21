@@ -5,12 +5,11 @@
 
 #include "../include/state.h"
 
-template<int nc> using Vec = Eigen::Matrix<double, nc + 4, 1>;
-template<int nc> using Mat = Eigen::Matrix<double, nc + 4, nc + 4>;
+using Vec = Eigen::Matrix<double, nc + 4, 1>;
+using Mat = Eigen::Matrix<double, nc + 4, nc + 4>;
 
-template<int nc>
 struct slope {
-    Vec<nc> dW;
+    Vec dW;
 
     double theta[nc];
     double dbdth[nc];
@@ -19,13 +18,14 @@ struct slope {
     vec v;
     dir::Direction dir;
 
-    static Vec<nc> stateToVec(const state<nc> &st);
-    static state<nc> vecToState(const Vec<nc> &U);
+    static Vec stateToVec(const state &st);
+    static Vec stateToFlux(const state &st, dir::Direction dir, const gasinfo &gas);
+    static state vecToState(const Vec &U);
     slope();
-    slope(const state<nc> &le, const state<nc> &ri, const dir::Direction dir, const gasinfo<nc> &gas);
-    Mat<nc> Omega() const;
-    Mat<nc> iOmega() const;
-    Vec<nc> lambda() const;
+    slope(const state &le, const state &ri, const dir::Direction dir, const gasinfo &gas);
+    Mat Omega() const;
+    Mat iOmega() const;
+    Vec lambda() const;
 };
 
 #endif

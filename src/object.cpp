@@ -5,10 +5,7 @@
 
 namespace objects {
 
-template struct object<NC>;
-
-template<int nc>
-object<nc>:: object(
+object::object(
         int nx, int ny, int nz,
         const vec &ll, const vec &ur, const std::string &id)
 :
@@ -30,49 +27,42 @@ object<nc>:: object(
     _slopes[dir::Z].resize((nz + 1) * ny * nx);
 }
 
-template<int nc>
-void object<nc>::set_solver(const ::solver<nc> *slvr) { this->slvr = slvr; }
+void object::set_solver(const ::solver *slvr) { this->slvr = slvr; }
 
-template<int nc>
-const vec &object<nc>::g() const { return slvr->g(); }
+const vec &object::g() const { return slvr->g(); }
 
-template<int nc>
-const gasinfo<nc> &object<nc>::gas() const { return slvr->gas(); }
+const gasinfo &object::gas() const { return slvr->gas(); }
 
 /* Per cell/face virtuals */
-template<int nc>
-void object<nc>::integrate(state<nc> &cell, const flux<nc> &left, const flux<nc> &right, dir::Direction, double h, const double, const double dt) {
+void object::integrate(state &cell, const flux &left, const flux &right, dir::Direction, double h, const double, const double dt) {
     for (int i = 0; i < nc; i++)
         cell.rho[i] -= dt * (right.fdens[i] - left.fdens[i]) / h;
     cell.rhou -= dt * (right.fmom - left.fmom) / h;
-    cell.rhoE -= dt * (right.fener - left.fener) / h;
+    cell.e -= dt * (right.fener - left.fener) / h;
 }
 
-template<int nc>
-void object<nc>::integrate_rhs(state<nc> &cell, const state<nc> &source, const double, const double dt) {
+void object::integrate_rhs(state &cell, const state &source, const double, const double dt) {
     const double rho = cell.density();
     for (auto d : dir::DIRECTIONS) {
         if (n(d) == 1) /* Don't integrate gravity by one-cell dimensions */
             continue;
         const double gd = g()(d);
-        cell.rhoE += dt * cell.rhou(d) * gd;
+        cell.e += dt * cell.rhou(d) * gd;
         cell.rhou(d) += dt * rho * gd;
     }
 
     for (int i = 0; i < nc; i++)
         cell.rho[i] += dt * source.rho[i];
     cell.rhou += dt * source.rhou;
-    cell.rhoE += dt * source.rhoE;
+    cell.e += dt * source.e;
 }
 
 /* Per direction virtuals */
-template<int nc>
-void object<nc>::compute_inner_flux(dir::Direction dir, const double dt_h) {
-    const vec n(dir);
+void object::compute_inner_flux(dir::Direction dir, const double dt_h) {
     int di = 0, dj = 0, dk = 0;
     dir::select(dir, di, dj, dk) = 1;
 
-    slope<nc> baz;
+    slope baz;
 
     for (int i = di; i < nx; i++)
         for (int j = dj; j < ny; j++)
@@ -81,26 +71,23 @@ void object<nc>::compute_inner_flux(dir::Direction dir, const double dt_h) {
                         val(i-di, j-dj, k-dk),
                         val(i   , j   , k),
                         baz, baz, baz,
-                        n, dt_h, gas());
+                        dir, dt_h, gas());
 }
 
-template<int nc>
-void object<nc>::compute_inner_slope(dir::Direction dir) {
+void object::compute_inner_slope(dir::Direction dir) {
     int di = 0, dj = 0, dk = 0;
     dir::select(dir, di, dj, dk) = 1;
 
     for (int i = di; i < nx; i++)
         for (int j = dj; j < ny; j++)
             for (int k = dk; k < nz; k++)
-                slope_by(dir, i, j, k) = slope<nc>(
+                slope_by(dir, i, j, k) = slope(
                         val(i-di, j-dj, k-dk),
                         val(i   , j   , k),
                         dir, gas());
 }
 
-template<int nc>
-void object<nc>::compute_outer_flux(dir::Direction dir) {
-    const vec n(dir);
+void object::compute_outer_flux(dir::Direction dir) {
     const double tol = 1e-4;
     const int ndir = dir::select(dir, nx, ny, nz);
 
@@ -119,15 +106,15 @@ void object<nc>::compute_outer_flux(dir::Direction dir) {
                 for (const auto &z : side(dir, dir::BEG, i, j, k)) {
                     Srefl -= z.Sfrac;
                     flux_by(dir, i, j, k).add_outer(
-                            static_cast<const object<nc> *>(z.other)->val(z.ri, z.rj, z.rk),
+                            static_cast<const object *>(z.other)->val(z.ri, z.rj, z.rk),
                             val(i, j, k),
-                            n, z.Sfrac, gas());
+                            dir, z.Sfrac, gas());
                 }
                 if (Srefl > tol)
                     flux_by(dir, i, j, k).add_outer_reflect(
                             nullptr,
                             val(i, j, k),
-                            n, Srefl, gas());
+                            dir, Srefl, gas());
             }
 
     dir::select(dir, ilo, jlo, klo) = ndir;
@@ -143,19 +130,18 @@ void object<nc>::compute_outer_flux(dir::Direction dir) {
                     Srefl -= z.Sfrac;
                     flux_by(dir, i, j, k).add_outer(
                             val(i - di, j - dj, k - dk),
-                            static_cast<const object<nc> *>(z.other)->val(z.ri, z.rj, z.rk),
-                            n, z.Sfrac, gas());
+                            static_cast<const object *>(z.other)->val(z.ri, z.rj, z.rk),
+                            dir, z.Sfrac, gas());
                 }
                 if (Srefl > tol)
                     flux_by(dir, i, j, k).add_outer_reflect(
                             val(i - di, j - dj, k - dk),
                             nullptr,
-                            n, Srefl, gas());
+                            dir, Srefl, gas());
             }
 }
 
-template<int nc>
-void object<nc>::integrate_by(dir::Direction dir, const double t, const double dt) {
+void object::integrate_by(dir::Direction dir, const double t, const double dt) {
     int di = 0, dj = 0, dk = 0;
     const double hdir = h(dir);
     dir::select(dir, di, dj, dk) = 1;
@@ -170,8 +156,7 @@ void object<nc>::integrate_by(dir::Direction dir, const double t, const double d
 }
 
 /* Per object virtuals */
-template<int nc>
-double object<nc>::get_max_dt() const {
+double object::get_max_dt() const {
     double cmax = 0;
 
     double vxmax = 0;
@@ -204,8 +189,7 @@ double object<nc>::get_max_dt() const {
 }
 
 /* Regular methods */
-template<int nc>
-void object<nc>::integrate_rhs(const double t, const double dt) {
+void object::integrate_rhs(const double t, const double dt) {
     for (int i = 0; i < nx; i++)
         for (int j = 0; j < ny; j++)
             for (int k = 0; k < nz; k++)

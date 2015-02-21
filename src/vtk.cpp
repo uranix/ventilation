@@ -3,8 +3,6 @@
 
 namespace objects {
 
-template struct object<NC>;
-
 template<typename T>
 void put(std::fstream &f, T value) {
     union {
@@ -16,8 +14,7 @@ void put(std::fstream &f, T value) {
     f.write(helper.buf, sizeof(T));
 }
 
-template<int nc>
-void object<nc>::save(const std::string &prefix, const int step) const {
+void object::save(const std::string &prefix, const int step) const {
     #include "GitVersion.h"
     std::string fn(prefix + id);
     fn += ".";

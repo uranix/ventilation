@@ -2,6 +2,4 @@
 
 namespace objects {
 
-template struct pulse<NC>;
-
 }

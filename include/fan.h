@@ -5,14 +5,13 @@
 
 namespace objects {
 
-template<int nc>
-struct fan : public pipe<nc> {
+struct fan : public pipe {
     double Pmax, Qmax;
     vec gradPmax;
     fan(int n, char cdir, const vec &ll, const vec &ur, const std::string &id,
         double Pmax, double Qmax, double friction_coeff = 0
     )
-        : pipe<nc>(n, cdir, ll, ur, id, friction_coeff), Pmax(Pmax), Qmax(Qmax)
+        : pipe(n, cdir, ll, ur, id, friction_coeff), Pmax(Pmax), Qmax(Qmax)
     {
         vec P;
         P(this->dir) = Pmax;
@@ -20,15 +19,15 @@ struct fan : public pipe<nc> {
     }
     ~fan() { }
 
-    virtual void integrate_rhs(state<nc> &cell, const state<nc> &source, const double t, const double dt) override {
-        pipe<nc>::integrate_rhs(cell, source, t, dt);
+    virtual void integrate_rhs(state &cell, const state &source, const double t, const double dt) override {
+        pipe::integrate_rhs(cell, source, t, dt);
 
 //        double s = this->surface * cell.velocity()(this->dir) / Qmax;
         double s = 0;
         vec gradP = (1 - s) * gradPmax;
 
         cell.rhou += dt * gradP;
-        cell.rhoE += dt * gradP.dot(cell.velocity());
+        cell.e += dt * gradP.dot(cell.velocity());
     }
 };
 

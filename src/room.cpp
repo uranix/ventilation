@@ -2,6 +2,4 @@
 
 namespace objects {
 
-template struct room<NC>;
-
 }

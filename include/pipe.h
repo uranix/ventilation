@@ -5,14 +5,13 @@
 
 namespace objects {
 
-template<int nc>
-struct pipe : public object<nc> {
+struct pipe : public object {
     dir::Direction dir;
     double surface, perimeter;
     double friction_coeff;
 
     pipe(int n, char cdir, const vec &ll, const vec &ur, const std::string &id, double friction_coeff = 0)
-        : object<nc>(
+        : object(
             dir::from_char(cdir) == dir::X ? n : 1,
             dir::from_char(cdir) == dir::Y ? n : 1,
             dir::from_char(cdir) == dir::Z ? n : 1, ll, ur, id),
@@ -29,8 +28,8 @@ struct pipe : public object<nc> {
 
     virtual ~pipe() { }
 
-    virtual void integrate(state<nc> &cell, const flux<nc> &left, const flux<nc> &right, dir::Direction dir, double h, const double t, double dt) override;
-    virtual void integrate_rhs(state<nc> &cell, const state<nc> &source, const double t, const double dt) override;
+    virtual void integrate(state &cell, const flux &left, const flux &right, dir::Direction dir, double h, const double t, double dt) override;
+    virtual void integrate_rhs(state &cell, const state &source, const double t, const double dt) override;
 
     virtual void compute_outer_flux(dir::Direction) override;
     virtual void integrate_by(dir::Direction, const double t, const double dt) override;

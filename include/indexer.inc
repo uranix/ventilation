@@ -1,55 +1,55 @@
 // vim:ft=cpp et sts=4 ts=4 sw=4 si
 
-    MAYBECONST state<nc> &source(int i, int j, int k) MAYBECONST {
+    MAYBECONST state &source(int i, int j, int k) MAYBECONST {
         assert(i >= 0 && i < nx);
         assert(j >= 0 && j < ny);
         assert(k >= 0 && k < nz);
         return _sources[i + (j + k * ny) * nx];
     }
 
-    MAYBECONST flux<nc> &x_flux(int i, int j, int k) MAYBECONST {
+    MAYBECONST flux &x_flux(int i, int j, int k) MAYBECONST {
         assert(i >= 0 && i <= nx);
         assert(j >= 0 && j < ny);
         assert(k >= 0 && k < nz);
         return _fluxes[0][i + (j + k * ny) * (nx + 1)];
     }
 
-    MAYBECONST flux<nc> &y_flux(int i, int j, int k) MAYBECONST {
+    MAYBECONST flux &y_flux(int i, int j, int k) MAYBECONST {
         assert(i >= 0 && i < nx);
         assert(j >= 0 && j <= ny);
         assert(k >= 0 && k < nz);
         return _fluxes[1][i + (j + k * (ny + 1)) * nx];
     }
 
-    MAYBECONST flux<nc> &z_flux(int i, int j, int k) MAYBECONST {
+    MAYBECONST flux &z_flux(int i, int j, int k) MAYBECONST {
         assert(i >= 0 && i < nx);
         assert(j >= 0 && j < ny);
         assert(k >= 0 && k <= nz);
         return _fluxes[2][i + (j + k * ny) * nx];
     }
 
-    MAYBECONST slope<nc> &x_slope(int i, int j, int k) MAYBECONST {
+    MAYBECONST slope &x_slope(int i, int j, int k) MAYBECONST {
         assert(i >= 0 && i <= nx);
         assert(j >= 0 && j < ny);
         assert(k >= 0 && k < nz);
         return _slopes[0][i + (j + k * ny) * (nx + 1)];
     }
 
-    MAYBECONST slope<nc> &y_slope(int i, int j, int k) MAYBECONST {
+    MAYBECONST slope &y_slope(int i, int j, int k) MAYBECONST {
         assert(i >= 0 && i < nx);
         assert(j >= 0 && j <= ny);
         assert(k >= 0 && k < nz);
         return _slopes[1][i + (j + k * (ny + 1)) * nx];
     }
 
-    MAYBECONST slope<nc> &z_slope(int i, int j, int k) MAYBECONST {
+    MAYBECONST slope &z_slope(int i, int j, int k) MAYBECONST {
         assert(i >= 0 && i < nx);
         assert(j >= 0 && j < ny);
         assert(k >= 0 && k <= nz);
         return _slopes[2][i + (j + k * ny) * nx];
     }
 
-    MAYBECONST flux<nc> &flux_by(const dir::Direction dir, int i, int j, int k) MAYBECONST {
+    MAYBECONST flux &flux_by(const dir::Direction dir, int i, int j, int k) MAYBECONST {
         if (dir == dir::X)
             return x_flux(i, j, k);
         if (dir == dir::Y)
@@ -57,7 +57,7 @@
         return z_flux(i, j, k);
     }
 
-    MAYBECONST slope<nc> &slope_by(const dir::Direction dir, int i, int j, int k) MAYBECONST {
+    MAYBECONST slope &slope_by(const dir::Direction dir, int i, int j, int k) MAYBECONST {
         if (dir == dir::X)
             return x_slope(i, j, k);
         if (dir == dir::Y)
@@ -65,7 +65,7 @@
         return z_slope(i, j, k);
     }
 
-    MAYBECONST flux<nc> &flux_by(const dir::Direction dir, int i) MAYBECONST {
+    MAYBECONST flux &flux_by(const dir::Direction dir, int i) MAYBECONST {
         if (dir == dir::X)
             return x_flux(i, 0, 0);
         if (dir == dir::Y)

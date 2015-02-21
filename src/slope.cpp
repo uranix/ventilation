@@ -1,42 +1,37 @@
 #include "../include/slope.h"
+#include "../include/gasinfo.h"
 
-template struct slope<NC>;
-
-template<int nc>
-Vec<nc> slope<nc>::stateToVec(const state<nc> &st) {
-    Vec<nc> U;
+Vec slope::stateToVec(const state &st) {
+    Vec U;
     U[0] = st.density();
     for (int i = 1; i < nc; i++)
         U[i] = st.rho[i];
     U[nc + 0] = st.rhou.x;
     U[nc + 1] = st.rhou.y;
     U[nc + 2] = st.rhou.z;
-    U[nc + 3] = st.rhoE;
+    U[nc + 3] = st.e;
     return U;
 }
 
-template<int nc>
-state<nc> slope<nc>::vecToState(const Vec<nc> &U) {
-    state<nc> st;
+state slope::vecToState(const Vec &U) {
+    state st;
     st.rho[0] = U[0];
     for (int i = 1; i < nc; i++) {
         st.rho[i] = U[i];
         st.rho[0] -= U[i];
     }
     st.rhou = vec(U[nc], U[nc + 1], U[nc + 2]);
-    st.rhoE = U[nc + 3];
+    st.e = U[nc + 3];
     return st;
 }
 
-template<int nc>
-slope<nc>::slope() : c(1), v(0), dir(dir::X) {
+slope::slope() : c(1), v(0), dir(dir::X) {
     dW.fill(0);
 }
 
-template<int nc>
-slope<nc>::slope(
-        const state<nc> &le, const state<nc> &ri,
-        const dir::Direction dir, const gasinfo<nc> &gas)
+slope::slope(
+        const state &le, const state &ri,
+        const dir::Direction dir, const gasinfo &gas)
     : dir(dir)
 {
     const auto &UL = stateToVec(le);
@@ -54,9 +49,8 @@ slope<nc>::slope(
     dW = Omega() * (UR - UL);
 }
 
-template<int nc>
-Mat<nc> slope<nc>::Omega() const {
-    Mat<nc> Om;
+Mat slope::Omega() const {
+    Mat Om;
     Om.fill(0);
 
     const vec n(dir);
@@ -104,9 +98,8 @@ Mat<nc> slope<nc>::Omega() const {
     return Om;
 }
 
-template<int nc>
-Mat<nc> slope<nc>::iOmega() const {
-    Mat<nc> iOm;
+Mat slope::iOmega() const {
+    Mat iOm;
     iOm.fill(0);
 
     const vec n(dir);
@@ -116,7 +109,7 @@ Mat<nc> slope<nc>::iOmega() const {
     const double b = 1 / (g - 1);
     const double c2b = c*c*b;
 
-    Vec<nc> col, row;
+    Vec col, row;
 
     col[0] = 1;
     for (int i = 1; i < nc; i++)
@@ -158,12 +151,11 @@ Mat<nc> slope<nc>::iOmega() const {
     return iOm;
 }
 
-template<int nc>
-Vec<nc> slope<nc>::lambda() const {
+Vec slope::lambda() const {
     const vec n(dir);
     const double vn = v.dot(n);
 
-    Vec<nc> lam;
+    Vec lam;
     for (int i = 0; i < nc + 2; i++)
         lam[i] = vn;
 
@@ -172,3 +164,20 @@ Vec<nc> slope<nc>::lambda() const {
 
     return lam;
 }
+
+Vec slope::stateToFlux(const state &st, dir::Direction dir, const gasinfo &gas) {
+    const vec n(dir);
+    Vec F;
+    double rho = st.density();
+    double vn = st.rhou(dir) / rho;
+    double p = gas.pressure(st);
+    F[0] = st.rhou(dir);
+    for (int i = 1; i < nc; i++)
+        F[i] = F[0] * st.rho[i] / rho;
+    F[nc + 0] = st.rhou.x * vn + p * n.x;
+    F[nc + 1] = st.rhou.y * vn + p * n.y;
+    F[nc + 2] = st.rhou.z * vn + p * n.z;
+    F[nc + 3] = (st.e + p) * vn;
+    return F;
+}
+

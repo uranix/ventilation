@@ -25,8 +25,7 @@ public:
                 path.push_back(PathSpec(start + j * step, chain[i-1] + j * h));
         }
     }
-    template<int nc>
-    void walk(const std::string &prefix, const int step, const gasinfo<nc> gas, std::function<state<nc>(vec)> locator) {
+    void walk(const std::string &prefix, const int step, const gasinfo gas, std::function<state(vec)> locator) {
         std::string fn(prefix + name);
         fn += ".";
         fn += std::to_string(step);
@@ -55,7 +54,7 @@ public:
 
             tang *= 1. / tang.norm();
 
-            const state<nc> &st = locator(path[i].second);
+            const state &st = locator(path[i].second);
 
             f << path[i].first << ",";
             for (int j = 0; j < nc; j++)

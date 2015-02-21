@@ -4,16 +4,14 @@
 #include "../include/state.h"
 #include "../include/slope.h"
 
-template<int nc>
 struct predictor_flux {
     double fden[nc];
     vec fmom;
     double fener;
 
-    void solve(const state<nc> &left, const state<nc> &right, const vec &norm, const gasinfo<nc> &gas);
+    void solve(const state &left, const state &right, dir::Direction dir, const gasinfo &gas);
 };
 
-template<int nc>
 struct corrector_flux {
     double fden[nc];
     vec fmom;
@@ -22,12 +20,11 @@ struct corrector_flux {
     corrector_flux(const double dt_h) : dt_h(dt_h) { }
 
     void solve(
-            const state<nc> &left, const state<nc> &right,
-            const slope<nc> &ls, const slope<nc> &cs, const slope<nc> &rs,
-            const vec &norm, const gasinfo<nc> &gas);
+            const state &left, const state &right,
+            const slope &ls, const slope &cs, const slope &rs,
+            dir::Direction dir, const gasinfo &gas);
 };
 
-template<int nc>
 struct flux {
     double fdens[nc];
     vec fmom;
@@ -45,43 +42,44 @@ struct flux {
     }
 
     void add_outer(
-            const state<nc> &left, const state<nc> &right,
-            const vec &norm, const double Sfrac, const gasinfo<nc> &gas) 
+            const state &left, const state &right,
+            dir::Direction dir, const double Sfrac, const gasinfo &gas)
     {
-        outer_solve_add(left, right, norm, Sfrac, gas);
+        outer_solve_add(left, right, dir, Sfrac, gas);
     }
 
     void set_inner(
-            const state<nc> &left, const state<nc> &right,
-            const slope<nc> &ls, const slope<nc> &cs, const slope<nc> &rs,
-            const vec &norm, const double dt_h, const gasinfo<nc> &gas)
+            const state &left, const state &right,
+            const slope &ls, const slope &cs, const slope &rs,
+            dir::Direction dir, const double dt_h, const gasinfo &gas)
     {
-        inner_solve_set(left, right, ls, cs, rs, norm, dt_h, gas);
+        inner_solve_set(left, right, ls, cs, rs, dir, dt_h, gas);
     }
 
     void add_outer_reflect(
-            optional<const state<nc> > _left, optional<const state<nc> > _right,
-            const vec &norm, const double Sfrac, const gasinfo<nc> &gas)
+            optional<const state > _left, optional<const state > _right,
+            dir::Direction dir, const double Sfrac, const gasinfo &gas)
     {
+        const vec norm(dir);
         assert((!_left) != (!_right));
 
         if (_left) {
-            const state<nc> &left = *_left;
-            state<nc> right(left);
+            const state &left = *_left;
+            state right(left);
             right.rhou = left.rhou - 2 * norm * dot(norm, left.rhou);
-            outer_solve_add(left, right, norm, Sfrac, gas);
+            outer_solve_add(left, right, dir, Sfrac, gas);
         } else {
-            const state<nc> &right = *_right;
-            state<nc> left(right);
+            const state &right = *_right;
+            state left(right);
             left.rhou = right.rhou - 2 * norm * dot(norm, right.rhou);
-            outer_solve_add(left, right, norm, Sfrac, gas);
+            outer_solve_add(left, right, dir, Sfrac, gas);
         }
     }
 
 private:
-    void outer_solve_add(const state<nc> &left, const state<nc> &right, const vec &norm, const double Sfrac, const gasinfo<nc> &gas) {
-        predictor_flux<nc> pred;
-        pred.solve(left, right, norm, gas);
+    void outer_solve_add(const state &left, const state &right, dir::Direction dir, const double Sfrac, const gasinfo &gas) {
+        predictor_flux pred;
+        pred.solve(left, right, dir, gas);
 
         for (int i = 0; i < nc; i++)
             fdens[i] += Sfrac * pred.fden[i];
@@ -90,12 +88,12 @@ private:
         fener += Sfrac * pred.fener;
     }
     void inner_solve_set(
-            const state<nc> &left, const state<nc> &right,
-            const slope<nc> &ls, const slope<nc> &cs, const slope<nc> &rs,
-            const vec &norm, const double dt_h, const gasinfo<nc> &gas)
+            const state &left, const state &right,
+            const slope &ls, const slope &cs, const slope &rs,
+            dir::Direction dir, const double dt_h, const gasinfo &gas)
     {
-        predictor_flux<nc> pred;
-        pred.solve(left, right, norm, gas);
+        predictor_flux pred;
+        pred.solve(left, right, dir, gas);
 
         for (int i = 0; i < nc; i++)
             fdens[i] = pred.fden[i];
@@ -103,8 +101,8 @@ private:
         fmom = pred.fmom;
         fener = pred.fener;
 
-        corrector_flux<nc> corr(dt_h);
-        corr.solve(left, right, ls, cs, rs, norm, gas);
+        corrector_flux corr(dt_h);
+        corr.solve(left, right, ls, cs, rs, dir, gas);
         for (int i = 0; i < nc; i++)
             fdens[i] += corr.fden[i];
 

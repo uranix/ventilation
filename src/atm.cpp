@@ -2,6 +2,4 @@
 
 namespace objects {
 
-template struct atm<NC>;
-
 }

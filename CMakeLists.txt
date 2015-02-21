@@ -10,6 +10,8 @@ message(STATUS "Configured version is ${GIT_VERSION}")
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/GitVersion.h.in ${CMAKE_CURRENT_BINARY_DIR}/GitVersion.h @ONLY)
 
 set(vent_SOURCES
+	src/state.cpp
+	src/gasinfo.cpp
 	src/slope.cpp
 	src/contact.cpp
 	src/vtk.cpp
@@ -20,6 +22,7 @@ set(vent_SOURCES
 	src/fan.cpp
 	src/room.cpp
 	src/pulse.cpp
+	src/corrector.cpp
 	)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Werror -Wextra -g")
@@ -52,10 +55,10 @@ message(STATUS " ")
 
 if (${PRECISE_RIEMANN})
 	add_definitions("-DPRECISE_RIEMANN=1")
-	list(APPEND vent_SOURCES src/flux_riemann.cpp)
+	list(APPEND vent_SOURCES src/predictor_riemann.cpp)
 else()
 	add_definitions("-DPRECISE_RIEMANN=0")
-	list(APPEND vent_SOURCES src/flux_cir.cpp)
+	list(APPEND vent_SOURCES src/predictor_cir.cpp)
 endif()
 
 if (${FP_TRAP})
