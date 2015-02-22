@@ -34,6 +34,12 @@ if(${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ferror-limit=${max_errors}")
 endif()
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffast-math -funroll-loops")
+
+if(NOT DEFINED ENTROPY_FIX)
+	set(ENTROPY_FIX FALSE)
+endif()
+
 if(NOT DEFINED PRECISE_RIEMANN)
 	set(PRECISE_RIEMANN FALSE)
 endif()
@@ -49,9 +55,16 @@ endif()
 message(STATUS "Configuerd with following params")
 message(STATUS " ")
 message(STATUS "Use precise Riemann solver (-DPRECISE_RIEMANN): ${PRECISE_RIEMANN}")
+message(STATUS "Use entropy fix (-DENTROPY_FIX): ${ENTROPY_FIX}")
 message(STATUS "Use floating point traps (-DFP_TRAP): ${FP_TRAP}")
 message(STATUS "Number of components (-DNC): ${NC}")
 message(STATUS " ")
+
+if (${ENTROPY_FIX})
+	add_definitions("-DENTROPY_FIX=1")
+else()
+	add_definitions("-DENTROPY_FIX=0")
+endif()
 
 if (${PRECISE_RIEMANN})
 	add_definitions("-DPRECISE_RIEMANN=1")
@@ -71,6 +84,7 @@ add_definitions("-DNC=${NC}")
 
 find_package(SWIG 3.0 REQUIRED)
 include(${SWIG_USE_FILE})
+
 find_package(Eigen3 REQUIRED)
 include_directories(${EIGEN3_INCLUDE_DIR})
 

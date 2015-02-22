@@ -26,6 +26,7 @@ struct slope {
     Mat Omega() const;
     Mat iOmega() const;
     Vec lambda() const;
+    double lambda(size_t i) const;
 };
 
 #endif

@@ -9,7 +9,9 @@ struct predictor_flux {
     vec fmom;
     double fener;
 
-    void solve(const state &left, const state &right, dir::Direction dir, const gasinfo &gas);
+    void solve(const state &left, const state &right,
+            const slope &cs,
+            dir::Direction dir, const gasinfo &gas);
 };
 
 struct corrector_flux {
@@ -79,7 +81,8 @@ struct flux {
 private:
     void outer_solve_add(const state &left, const state &right, dir::Direction dir, const double Sfrac, const gasinfo &gas) {
         predictor_flux pred;
-        pred.solve(left, right, dir, gas);
+        slope cs(left, right, dir, gas);
+        pred.solve(left, right, cs, dir, gas);
 
         for (int i = 0; i < nc; i++)
             fdens[i] += Sfrac * pred.fden[i];
@@ -93,7 +96,7 @@ private:
             dir::Direction dir, const double dt_h, const gasinfo &gas)
     {
         predictor_flux pred;
-        pred.solve(left, right, dir, gas);
+        pred.solve(left, right, cs, dir, gas);
 
         for (int i = 0; i < nc; i++)
             fdens[i] = pred.fden[i];

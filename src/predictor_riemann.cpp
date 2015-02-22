@@ -1,12 +1,15 @@
-#include "flux.h"
+#include "../include/flux.h"
+#include "../include/gasinfo.h"
 #include "riemann/euler.h"
 
 using namespace riemann_solver;
 
-template struct flux<NC>;
-
-template<int nc>
-void solver_flux<nc>::solve(const state<nc> &le, const state<nc> &ri, const vec &norm, const gasinfo<nc> &gas) {
+void predictor_flux::solve(
+        const state &le, const state &ri,
+        const slope &,
+        dir::Direction dir, const gasinfo &gas)
+{
+    const vec norm(dir);
     typedef euler<double, 3>::vec rvec;
     rvec v1, v2, n;
 

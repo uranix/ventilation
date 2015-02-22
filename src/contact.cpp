@@ -53,7 +53,6 @@ void connect(box &a, box &b) {
             if (check && found) {
                 std::cerr << "Multiple contacts! This should not have happened." << std::endl;
                 abort();
-                return;
             }
             found |= check;
 
@@ -120,6 +119,5 @@ void connect(box &a, box &b) {
     if (!ok) {
         std::cerr << "No contact between " << a.id << " and " << b.id << " found!" << std::endl;
         abort();
-        return;
     }
 }

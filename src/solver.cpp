@@ -69,9 +69,12 @@ void solver::integrate_rhs(const double t, const double dt) {
 void solver::integrate(const double dtlimit) {
     dt = estimate_timestep(dtlimit);
 #if 0
-    compute_flux(dir::X);
-    compute_flux(dir::Y);
-    compute_flux(dir::Z);
+    compute_slope(dir::X);
+    compute_slope(dir::Y);
+    compute_slope(dir::Z);
+    compute_flux(dir::X, dt);
+    compute_flux(dir::Y, dt);
+    compute_flux(dir::Z, dt);
     integrate_by(dir::X, t, dt);
     integrate_by(dir::Y, t, dt);
     integrate_by(dir::Z, t, dt);

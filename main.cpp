@@ -10,16 +10,16 @@
 
 #include <fenv.h>
 
-typedef objects::atm<2> Atm;
-typedef objects::pipe<2> Pipe;
-typedef objects::room<2> Room;
-typedef objects::fan<2> Fan;
-typedef objects::object<2> Object;
-typedef solver<2> Solver;
+typedef objects::atm Atm;
+typedef objects::pipe Pipe;
+typedef objects::room Room;
+typedef objects::fan Fan;
+typedef objects::object Object;
+typedef solver Solver;
 typedef tracer Tracer;
-typedef functor<2> Functor;
-typedef gasinfo<2> GasInfo;
-typedef state<2> State;
+typedef functor Functor;
+typedef gasinfo GasInfo;
+typedef state State;
 
 struct AtmValues : public Functor {
     const GasInfo gas;

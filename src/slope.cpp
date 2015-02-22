@@ -152,8 +152,7 @@ Mat slope::iOmega() const {
 }
 
 Vec slope::lambda() const {
-    const vec n(dir);
-    const double vn = v.dot(n);
+    const double vn = v(dir);
 
     Vec lam;
     for (int i = 0; i < nc + 2; i++)
@@ -163,6 +162,15 @@ Vec slope::lambda() const {
     lam[nc + 3] = vn - c;
 
     return lam;
+}
+
+double slope::lambda(size_t i) const {
+    const double vn = v(dir);
+    if (i < nc + 2)
+        return vn;
+    if (i == nc + 2)
+        return vn + c;
+    return vn - c;
 }
 
 Vec slope::stateToFlux(const state &st, dir::Direction dir, const gasinfo &gas) {
@@ -180,4 +188,3 @@ Vec slope::stateToFlux(const state &st, dir::Direction dir, const gasinfo &gas) 
     F[nc + 3] = (st.e + p) * vn;
     return F;
 }
-

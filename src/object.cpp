@@ -62,15 +62,16 @@ void object::compute_inner_flux(dir::Direction dir, const double dt_h) {
     int di = 0, dj = 0, dk = 0;
     dir::select(dir, di, dj, dk) = 1;
 
-    slope baz;
-
+//    #pragma omp parallel for collapse(3)
     for (int i = di; i < nx; i++)
         for (int j = dj; j < ny; j++)
             for (int k = dk; k < nz; k++)
                 flux_by(dir, i, j, k).set_inner(
                         val(i-di, j-dj, k-dk),
                         val(i   , j   , k),
-                        baz, baz, baz,
+                        slope_by(dir, i-di, j-dj, k-dk),
+                        slope_by(dir, i,    j,    k),
+                        slope_by(dir, i+di, j+dj, k+dk),
                         dir, dt_h, gas());
 }
 
@@ -78,6 +79,7 @@ void object::compute_inner_slope(dir::Direction dir) {
     int di = 0, dj = 0, dk = 0;
     dir::select(dir, di, dj, dk) = 1;
 
+//    #pragma omp parallel for collapse(3)
     for (int i = di; i < nx; i++)
         for (int j = dj; j < ny; j++)
             for (int k = dk; k < nz; k++)
@@ -145,6 +147,7 @@ void object::integrate_by(dir::Direction dir, const double t, const double dt) {
     int di = 0, dj = 0, dk = 0;
     const double hdir = h(dir);
     dir::select(dir, di, dj, dk) = 1;
+//    #pragma omp parallel for collapse(3)
     for (int i = 0; i < nx; i++)
         for (int j = 0; j < ny; j++)
             for (int k = 0; k < nz; k++) {
@@ -190,6 +193,7 @@ double object::get_max_dt() const {
 
 /* Regular methods */
 void object::integrate_rhs(const double t, const double dt) {
+//    #pragma omp parallel for collapse(3)
     for (int i = 0; i < nx; i++)
         for (int j = 0; j < ny; j++)
             for (int k = 0; k < nz; k++)

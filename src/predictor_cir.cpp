@@ -15,6 +15,7 @@ struct EntropyFix {
 
 void predictor_flux::solve(
         const state &le, const state &ri,
+        const slope &cs,
         dir::Direction dir, const gasinfo &gas)
 {
     Vec UL, UR;
@@ -26,11 +27,11 @@ void predictor_flux::solve(
     FL = slope::stateToFlux(le, dir, gas);
     FR = slope::stateToFlux(ri, dir, gas);
 
-    slope mid(le, ri, dir, gas);
+    const auto &mid = cs;
 
-    const auto &Om = mid.Omega();
     const auto &iOm = mid.iOmega();
 #ifndef NDEBUG
+    const auto &Om = mid.Omega();
     const auto &Id = Om * iOm;
     const auto &Id2 = Mat::Identity();
     if (!Id.isApprox(Id2, 1e-6)) {
@@ -42,7 +43,12 @@ void predictor_flux::solve(
 #endif
     const auto &lam = mid.lambda();
     const double c = mid.c;
-    F = .5 * (FL + FR + iOm * lam.cwiseAbs().unaryExpr(EntropyFix(c)).cwiseProduct(Om * (UL - UR)));
+    const EntropyFix ef(c);
+    F = .5 * (FL + FR - iOm * (lam.cwiseAbs()
+#if ENTROPY_FIX
+                .unaryExpr(ef)
+#endif
+                .cwiseProduct(mid.dW)));
 
     fden[0] = F[0];
     for (int i = 1; i < nc; i++) {

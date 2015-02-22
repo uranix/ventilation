@@ -25,7 +25,7 @@ public:
                 path.push_back(PathSpec(start + j * step, chain[i-1] + j * h));
         }
     }
-    void walk(const std::string &prefix, const int step, const gasinfo gas, std::function<state(vec)> locator) {
+    void walk(const std::string &prefix, const int step, const gasinfo &gas, std::function<state(vec)> locator) {
         std::string fn(prefix + name);
         fn += ".";
         fn += std::to_string(step);

@@ -10,12 +10,12 @@ struct pipe : public object {
     double surface, perimeter;
     double friction_coeff;
 
-    pipe(int n, char cdir, const vec &ll, const vec &ur, const std::string &id, double friction_coeff = 0)
+    pipe(int n, char cdir, const vec &ll, const vec &ur, const std::string &id, const double fc = 0)
         : object(
             dir::from_char(cdir) == dir::X ? n : 1,
             dir::from_char(cdir) == dir::Y ? n : 1,
             dir::from_char(cdir) == dir::Z ? n : 1, ll, ur, id),
-        dir(dir::from_char(cdir)), friction_coeff(friction_coeff)
+        dir(dir::from_char(cdir)), friction_coeff(fc)
     {
         for (auto d : dir::DIRECTIONS)
             for (auto s : dir::SIDES)
