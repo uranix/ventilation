@@ -25,7 +25,13 @@ set(vent_SOURCES
 	src/corrector.cpp
 	)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Werror -Wextra -g")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Werror -Wextra -g -flto -ffast-math -funroll-loops")
+
+find_package(OpenMP)
+if (${OPENMP_FOUND})
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+endif()
+
 set(max_errors 5)
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fmax-errors=${max_errors}")
@@ -33,8 +39,6 @@ endif()
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ferror-limit=${max_errors}")
 endif()
-
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffast-math -funroll-loops")
 
 if(NOT DEFINED ENTROPY_FIX)
 	set(ENTROPY_FIX FALSE)

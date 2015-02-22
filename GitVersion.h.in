@@ -1,9 +1,15 @@
 static const char VERSION[] = "Ventilation solver, "
 
 #if PRECISE_RIEMANN
-"exact Riemann, "
+"Godunov predictor, "
 #else
-"Courant-Isacson-Rees, "
+"Courant-Isacson-Rees predictor, "
+#endif
+
+#if ENTROPY_FIX
+"with entropy fix, "
+#else
+"without entropy fix, "
 #endif
 
 #if FT_TRAP

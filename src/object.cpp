@@ -62,7 +62,7 @@ void object::compute_inner_flux(dir::Direction dir, const double dt_h) {
     int di = 0, dj = 0, dk = 0;
     dir::select(dir, di, dj, dk) = 1;
 
-//    #pragma omp parallel for collapse(3)
+//    #pragma omp parallel for
     for (int i = di; i < nx; i++)
         for (int j = dj; j < ny; j++)
             for (int k = dk; k < nz; k++)

@@ -79,15 +79,20 @@ void solver::integrate(const double dtlimit) {
     integrate_by(dir::Y, t, dt);
     integrate_by(dir::Z, t, dt);
 #else
-    compute_slope(dir::X);
-    compute_flux(dir::X, dt);
-    integrate_by(dir::X, t, dt);
-    compute_slope(dir::Y);
-    compute_flux(dir::Y, dt);
-    integrate_by(dir::Y, t, dt);
-    compute_slope(dir::Z);
-    compute_flux(dir::Z, dt);
-    integrate_by(dir::Z, t, dt);
+    dir::Direction dirs[3];
+    int v = step() % 6;
+    dirs[0] = (v == 0 || v == 1) ? dir::X : ((v == 2 || v == 3) ? dir::Y : dir::Z);
+    dirs[1] = (v == 2 || v == 4) ? dir::X : ((v == 0 || v == 5) ? dir::Y : dir::Z);
+    dirs[2] = (v == 3 || v == 5) ? dir::X : ((v == 1 || v == 4) ? dir::Y : dir::Z);
+/*    int v = rand() & 1;
+    dirs[0] = v ? dir::Z : dir::X;
+    dirs[1] = v ? dir::Y : dir::Y;
+    dirs[2] = v ? dir::X : dir::Z; */
+    for (int i = 0; i < 3; i++) {
+        compute_slope(dirs[i]);
+        compute_flux(dirs[i], dt);
+        integrate_by(dirs[i], t, dt);
+    }
 #endif
     integrate_rhs(t, dt);
     t += dt;
