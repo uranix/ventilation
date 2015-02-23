@@ -82,7 +82,7 @@ endif()
 
 if (${PRECISE_RIEMANN})
 	add_definitions("-DPRECISE_RIEMANN=1")
-	list(APPEND vent_SOURCES src/predictor_riemann.cpp)
+	list(APPEND vent_SOURCES src/predictor_godunov.cpp)
 else()
 	add_definitions("-DPRECISE_RIEMANN=0")
 	list(APPEND vent_SOURCES src/predictor_cir.cpp)
