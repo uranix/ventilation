@@ -25,7 +25,17 @@ set(vent_SOURCES
 	src/corrector.cpp
 	)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Werror -Wextra -g -flto -ffast-math -funroll-loops")
+if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Werror -Wextra -g -flto -ffast-math -funroll-loops")
+endif()
+
+if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Werror -Wextra -g -flto -ffast-math -funroll-loops")
+endif()
+
+if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Werror -Wextra -g -fast -fp-model fast=2")
+endif()
 
 find_package(OpenMP)
 if (${OPENMP_FOUND})

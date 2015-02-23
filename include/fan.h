@@ -19,16 +19,7 @@ struct fan : public pipe {
     }
     ~fan() { }
 
-    virtual void integrate_rhs(state &cell, const state &source, const double t, const double dt) override {
-        pipe::integrate_rhs(cell, source, t, dt);
-
-//        double s = this->surface * cell.velocity()(this->dir) / Qmax;
-        double s = 0;
-        vec gradP = (1 - s) * gradPmax;
-
-        cell.rhou += dt * gradP;
-        cell.e += dt * gradP.dot(cell.velocity());
-    }
+    virtual void integrate_rhs(state &cell, const state &source, const double t, const double dt) override;
 };
 
 }
