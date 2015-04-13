@@ -59,7 +59,7 @@ public:
             f << path[i].first << ",";
             for (int j = 0; j < nc; j++)
                 f << st.rho[j] << ",";
-            f << st.density() << "," << gas.gamma_factor(st) << ",";
+            f << st.density() << "," << gas.gamma_ratio(st) << ",";
             vec v = st.velocity();
             f << v.x << "," << v.y << "," << v.z << "," << v.dot(tang) << ",";
             f << gas.pressure(st) << "," << st.specific_energy() << ","

@@ -59,7 +59,7 @@ void object::save(const std::string &prefix, const int step) const {
     for (int k = 0; k < nz; k++)
         for (int j = 0; j < ny; j++)
             for (int i = 0; i < nx; i++)
-                put<float>(f, gas().gamma_factor(val(i, j, k)));
+                put<float>(f, gas().gamma_ratio(val(i, j, k)));
     f << "\nVECTORS v float\n";
     for (int k = 0; k < nz; k++)
         for (int j = 0; j < ny; j++)

@@ -26,11 +26,11 @@ set(vent_SOURCES
 	)
 
 if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Werror -Wextra -g -flto -ffast-math -funroll-loops")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Werror -Wextra -g -ffast-math -funroll-loops")
 endif()
 
 if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Werror -Wextra -g -flto -ffast-math -funroll-loops")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Werror -Wextra -g -ffast-math -funroll-loops")
 endif()
 
 if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel")

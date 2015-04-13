@@ -39,7 +39,7 @@ slope::slope(
 
     const auto &st = vecToState(0.5 * (UL + UR));
     st.fractions(theta);
-    gamma = gas.gamma_factor(st);
+    gamma = gas.gamma_ratio(st);
     c = gas.sound_speed(st);
     v = st.velocity();
 

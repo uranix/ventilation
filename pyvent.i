@@ -27,7 +27,7 @@
 struct gasinfo {
     gasinfo();
     %rename(set_component) set(int, double, double, double);
-    void set(int nc, double molar_mass, double gamma_factor, double viscosity);
+    void set(int nc, double molar_mass, double gamma_ratio, double viscosity);
 };
 
 %nodefaultctor box;
@@ -39,6 +39,7 @@ struct box {
 %rename(State) state;
 struct state {
     void from_rue(const std::vector<double> &r, const vec &u, double eps);
+    void from_rup(const std::vector<double> &r, const vec &u, double p, const gasinfo &gas);
     void from_ruT(const std::vector<double> &r, const vec &u, double T, const gasinfo &gas);
 };
 

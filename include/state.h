@@ -30,6 +30,7 @@ struct state {
     }
 
     void from_rue(const std::vector<double> &r, const vec &u, double eps);
+    void from_rup(const std::vector<double> &r, const vec &u, double p, const gasinfo &gas);
     void from_ruT(const std::vector<double> &r, const vec &u, double T, const gasinfo &gas);
 
     double density() const {

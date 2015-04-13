@@ -9,6 +9,14 @@ void state::from_ruT(const std::vector<double> &r, const vec &u, double T, const
     from_rue(r, u, eps);
 }
 
+void state::from_rup(const std::vector<double> &r, const vec &u, double p, const gasinfo &gas) {
+    from_rue(r, u, 0);
+
+    double eps = gas.beta_ratio(*this) * p / density();
+
+    from_rue(r, u, eps);
+}
+
 void state::from_rue(const std::vector<double> &r, const vec &u, double eps) {
     double rs = 0;
     for (int i = 0; i < nc; i++) {

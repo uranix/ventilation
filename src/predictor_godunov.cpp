@@ -28,8 +28,8 @@ void predictor_flux::solve(
     double tol = 1e-6;
     const int maxit = 5;
     euler<double, 3> solver(
-        le.density(), v1, gas.pressure(le), gas.gamma_factor(le),
-        ri.density(), v2, gas.pressure(ri), gas.gamma_factor(ri),
+        le.density(), v1, gas.pressure(le), gas.gamma_ratio(le),
+        ri.density(), v2, gas.pressure(ri), gas.gamma_ratio(ri),
         n, tol, maxit);
 
     double r, p, eps, xi = 0;
