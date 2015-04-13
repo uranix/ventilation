@@ -8,7 +8,7 @@ struct EntropyFix {
     EntropyFix(const double c, const double eps = .05) : lcut(c * eps), eps(eps) {  }
     double operator()(const double &lam) const {
         if (fabs(lam) < lcut)
-            return (lcut + lcut + lam + lam) / (2 * lcut);
+            return (lcut * lcut + lam * lam) / (2 * lcut);
         return lam;
     }
 };
