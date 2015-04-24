@@ -51,6 +51,11 @@ void solver::compute_flux(dir::Direction dir, const double dt) {
     }
 }
 
+void solver::special_flux(dir::Direction dir, const double dt) {
+    for (auto p : scene)
+        p->compute_special_flux(dir, dt / p->h(dir));
+}
+
 void solver::compute_slope(dir::Direction dir) {
     for (auto p : scene)
         p->compute_inner_slope(dir);
@@ -75,6 +80,9 @@ void solver::integrate(const double dtlimit) {
     compute_flux(dir::X, dt);
     compute_flux(dir::Y, dt);
     compute_flux(dir::Z, dt);
+    special_flux(dir::X, dt);
+    special_flux(dir::Y, dt);
+    special_flux(dir::Z, dt);
     integrate_by(dir::X, t, dt);
     integrate_by(dir::Y, t, dt);
     integrate_by(dir::Z, t, dt);
@@ -91,6 +99,7 @@ void solver::integrate(const double dtlimit) {
     for (int i = 0; i < 3; i++) {
         compute_slope(dirs[i]);
         compute_flux(dirs[i], dt);
+        special_flux(dirs[i], dt);
         integrate_by(dirs[i], t, dt);
     }
 #endif

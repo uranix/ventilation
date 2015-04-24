@@ -29,7 +29,8 @@ public:
 
     double estimate_timestep(const double dtlimit);
     void compute_slope(dir::Direction dir);
-    void compute_flux(dir::Direction dir, const double dt_h);
+    void compute_flux(dir::Direction dir, const double dt);
+    void special_flux(dir::Direction dir, const double dt);
     void integrate_by(dir::Direction dir, const double t, const double dt);
     void integrate_rhs(const double t, const double dt);
 

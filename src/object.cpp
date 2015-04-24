@@ -58,37 +58,6 @@ void object::integrate_rhs(state &cell, const state &source, const double, const
 }
 
 /* Per direction virtuals */
-void object::compute_inner_flux(dir::Direction dir, const double dt_h) {
-    int di = 0, dj = 0, dk = 0;
-    dir::select(dir, di, dj, dk) = 1;
-
-//    #pragma omp parallel for
-    for (int i = di; i < nx; i++)
-        for (int j = dj; j < ny; j++)
-            for (int k = dk; k < nz; k++)
-                flux_by(dir, i, j, k).set_inner(
-                        val(i-di, j-dj, k-dk),
-                        val(i   , j   , k),
-                        slope_by(dir, i-di, j-dj, k-dk),
-                        slope_by(dir, i,    j,    k),
-                        slope_by(dir, i+di, j+dj, k+dk),
-                        dir, dt_h, gas());
-}
-
-void object::compute_inner_slope(dir::Direction dir) {
-    int di = 0, dj = 0, dk = 0;
-    dir::select(dir, di, dj, dk) = 1;
-
-//    #pragma omp parallel for collapse(3)
-    for (int i = di; i < nx; i++)
-        for (int j = dj; j < ny; j++)
-            for (int k = dk; k < nz; k++)
-                slope_by(dir, i, j, k) = slope(
-                        val(i-di, j-dj, k-dk),
-                        val(i   , j   , k),
-                        dir, gas());
-}
-
 void object::compute_outer_flux(dir::Direction dir) {
     const double tol = 1e-4;
     const int ndir = dir::select(dir, nx, ny, nz);
@@ -143,6 +112,9 @@ void object::compute_outer_flux(dir::Direction dir) {
             }
 }
 
+void object::compute_special_flux(dir::Direction, const double) {
+}
+
 void object::integrate_by(dir::Direction dir, const double t, const double dt) {
     int di = 0, dj = 0, dk = 0;
     const double hdir = h(dir);
@@ -192,6 +164,37 @@ double object::get_max_dt() const {
 }
 
 /* Regular methods */
+void object::compute_inner_flux(dir::Direction dir, const double dt_h) {
+    int di = 0, dj = 0, dk = 0;
+    dir::select(dir, di, dj, dk) = 1;
+
+//    #pragma omp parallel for
+    for (int i = di; i < nx; i++)
+        for (int j = dj; j < ny; j++)
+            for (int k = dk; k < nz; k++)
+                flux_by(dir, i, j, k).set_inner(
+                        val(i-di, j-dj, k-dk),
+                        val(i   , j   , k),
+                        slope_by(dir, i-di, j-dj, k-dk),
+                        slope_by(dir, i,    j,    k),
+                        slope_by(dir, i+di, j+dj, k+dk),
+                        dir, dt_h, gas());
+}
+
+void object::compute_inner_slope(dir::Direction dir) {
+    int di = 0, dj = 0, dk = 0;
+    dir::select(dir, di, dj, dk) = 1;
+
+//    #pragma omp parallel for collapse(3)
+    for (int i = di; i < nx; i++)
+        for (int j = dj; j < ny; j++)
+            for (int k = dk; k < nz; k++)
+                slope_by(dir, i, j, k) = slope(
+                        val(i-di, j-dj, k-dk),
+                        val(i   , j   , k),
+                        dir, gas());
+}
+
 void object::integrate_rhs(const double t, const double dt) {
 //    #pragma omp parallel for collapse(3)
     for (int i = 0; i < nx; i++)

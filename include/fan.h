@@ -6,20 +6,22 @@
 namespace objects {
 
 struct fan : public pipe {
-    double Pmax, Qmax;
-    vec gradPmax;
-    fan(int n, char cdir, const vec &ll, const vec &ur, const std::string &id,
-        double Pmax, double Qmax, double friction_coeff = 0
+
+    double U;
+    flux FL, FR;
+
+    fan(char cdir, const vec &ll, const vec &ur, const std::string &id,
+        double Q, double friction_coeff = 0
     )
-        : pipe(n, cdir, ll, ur, id, friction_coeff), Pmax(Pmax), Qmax(Qmax)
+        : pipe(2, cdir, ll, ur, id, friction_coeff)
     {
-        vec P;
-        P(this->dir) = Pmax;
-        gradPmax = P / (ur - ll);
+        U = Q / this->surface;
     }
     ~fan() { }
 
-    virtual void integrate_rhs(state &cell, const state &source, const double t, const double dt) override;
+    virtual void compute_special_flux(dir::Direction dir, const double dt_h) override;
+    virtual void integrate(state &cell, const flux &left, const flux &right, dir::Direction, double h, const double, const double dt) override;
+
 };
 
 }

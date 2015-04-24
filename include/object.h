@@ -67,7 +67,7 @@ public:
         return _states[idx];
     }
 
-    const state val(dir::Direction dir, int i) const {
+    const state &val(dir::Direction dir, int i) const {
         if (dir == dir::X)
             return val(i, 0, 0);
         if (dir == dir::Y)
@@ -96,6 +96,7 @@ public:
 
     /* Per direction virtuals */
     virtual void compute_outer_flux(dir::Direction);
+    virtual void compute_special_flux(dir::Direction, const double dt_h);
     virtual void integrate_by(dir::Direction dir, const double t, const double dt);
 
     /* Per object vitruals */
@@ -104,9 +105,6 @@ public:
     /* Regular methods */
     void compute_inner_flux(dir::Direction, const double dt_h);
     void compute_inner_slope(dir::Direction);
-    void compute_inner_slopes();
-    void compute_inner_fluxes();
-    void compute_outer_fluxes();
 
     void integrate(const double t, const double dt);
     void integrate_rhs(const double t, const double dt);

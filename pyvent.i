@@ -70,7 +70,7 @@ namespace objects {
         pipe(int n, char dir, const vec &ll, const vec &ur, const std::string &id, double friction_coeff = 0);
     };
     struct fan : public pipe {
-        fan(int n, char dir, const vec &ll, const vec &ur, const std::string &id, double Pmax, double Qmax, double friction_coeff = 0);
+        fan(char dir, const vec &ll, const vec &ur, const std::string &id, double Q, double friction_coeff = 0);
     };
     struct atm : public object {
         atm(const vec &ll, const vec &ur, const std::string &id);
