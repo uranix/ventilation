@@ -17,7 +17,7 @@ struct fan_solver {
             double W = U - uL;
             double c = sqrt(gL * pL / rL);
             Pleft = pL * std::pow(1 - 0.5 * (gL - 1) * W / c, 2 * gL / (gL - 1));
-            R = rL * std::pow(pL / Pleft, 1 / gL);
+            R = rL * std::pow(Pleft / pL, 1 / gL);
         }
         return Pleft;
     }
@@ -34,7 +34,7 @@ struct fan_solver {
             double W = uR - U;
             double c = sqrt(gR * pR / rR);
             Pright = pR * std::pow(1 - 0.5 * (gR - 1) * W / c, 2 * gR / (gR - 1));
-            R = rR * std::pow(pR / Pright, 1 / gR);
+            R = rR * std::pow(Pright / pR, 1 / gR);
         }
         return Pright;
     }
