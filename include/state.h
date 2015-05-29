@@ -17,6 +17,9 @@ struct state {
     double rho[nc];
     vec rhou;
     double e;
+#if K_EPSILON_MODEL
+    double k, eps;
+#endif
 
     state() {
         zero();
@@ -25,6 +28,10 @@ struct state {
     void zero() {
         rhou = vec(0);
         e = 0;
+#if K_EPSILON_MODEL
+        k = 0;
+        eps = 0;
+#endif
         for (int i = 0; i < nc; i++)
             rho[i] = 0;
     }
@@ -32,6 +39,10 @@ struct state {
     void from_rue(const std::vector<double> &r, const vec &u, double eps);
     void from_rup(const std::vector<double> &r, const vec &u, double p, const gasinfo &gas);
     void from_ruT(const std::vector<double> &r, const vec &u, double T, const gasinfo &gas);
+
+#if K_EPSILON_MODEL
+    double mut() const;
+#endif
 
     double density() const {
         double sum = 0;

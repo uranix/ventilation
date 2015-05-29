@@ -55,6 +55,23 @@ void object::save(const std::string &prefix, const int step) const {
         for (int j = 0; j < ny; j++)
             for (int i = 0; i < nx; i++)
                 put<float>(f, val(i, j, k).density());
+    f << "\nSCALARS k float\nLOOKUP_TABLE default\n";
+    for (int k = 0; k < nz; k++)
+        for (int j = 0; j < ny; j++)
+            for (int i = 0; i < nx; i++)
+                put<float>(f, val(i, j, k).k);
+    f << "\nSCALARS eps float\nLOOKUP_TABLE default\n";
+    for (int k = 0; k < nz; k++)
+        for (int j = 0; j < ny; j++)
+            for (int i = 0; i < nx; i++)
+                put<float>(f, val(i, j, k).eps);
+#if K_EPSILON_MODEL
+    f << "\nSCALARS mut float\nLOOKUP_TABLE default\n";
+    for (int k = 0; k < nz; k++)
+        for (int j = 0; j < ny; j++)
+            for (int i = 0; i < nx; i++)
+                put<float>(f, val(i, j, k).mut());
+#endif
     f << "\nSCALARS gamma float\nLOOKUP_TABLE default\n";
     for (int k = 0; k < nz; k++)
         for (int j = 0; j < ny; j++)
@@ -79,7 +96,7 @@ void object::save(const std::string &prefix, const int step) const {
         for (int j = 0; j < ny; j++)
             for (int i = 0; i < nx; i++)
                 put<float>(f, gas().temperature(val(i, j, k)));
-    f << "\nSCALARS eps float\nLOOKUP_TABLE default\n";
+    f << "\nSCALARS specen float\nLOOKUP_TABLE default\n";
     for (int k = 0; k < nz; k++)
         for (int j = 0; j < ny; j++)
             for (int i = 0; i < nx; i++)

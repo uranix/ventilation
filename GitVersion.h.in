@@ -8,12 +8,14 @@ static const char VERSION[] = "Ventilation solver, "
 
 #if ENTROPY_FIX
 "with entropy fix, "
-#else
-"without entropy fix, "
 #endif
 
-#if FT_TRAP
-"trapping floating-point exceptions, "
+#if K_EPSILON_MODEL
+"with k-e model, "
+#endif
+
+#if FP_TRAP
+"with FP exceptions, "
 #endif
 
 "revision @GIT_VERSION@, built on " __DATE__

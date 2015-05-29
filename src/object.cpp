@@ -39,6 +39,22 @@ void object::integrate(state &cell, const flux &left, const flux &right, dir::Di
         cell.rho[i] -= dt * (right.fdens[i] - left.fdens[i]) / h;
     cell.rhou -= dt * (right.fmom - left.fmom) / h;
     cell.e -= dt * (right.fener - left.fener) / h;
+
+#if K_EPSILON_MODEL
+    const double C1e = 1.44;
+    const double C2e = 1.92;
+
+    double rhok = cell.density() * cell.k;
+    double rhoeps = cell.density() * cell.eps;
+
+    double Pk = cell.mut() * (left.gv2 + right.gv2);
+    rhok += dt * (left.frhok - right.frhok) / h + dt * (Pk - 1. / 3 * rhoeps);
+    rhoeps += dt * (left.frhoeps - right.frhoeps) / h
+        + dt * cell.eps / cell.k * (C1e * Pk - 1. / 3 * C2e * rhoeps);
+
+    cell.k = rhok / cell.density();
+    cell.eps = rhoeps / cell.density();
+#endif
 }
 
 void object::integrate_rhs(state &cell, const state &source, const double, const double dt) {
@@ -85,7 +101,7 @@ void object::compute_outer_flux(dir::Direction dir) {
                     flux_by(dir, i, j, k).add_outer_reflect(
                             nullptr,
                             val(i, j, k),
-                            dir, Srefl, gas());
+                            dir, Srefl, h(dir), gas());
             }
 
     dir::select(dir, ilo, jlo, klo) = ndir;
@@ -108,7 +124,7 @@ void object::compute_outer_flux(dir::Direction dir) {
                     flux_by(dir, i, j, k).add_outer_reflect(
                             val(i - di, j - dj, k - dk),
                             nullptr,
-                            dir, Srefl, gas());
+                            dir, Srefl, h(dir), gas());
             }
 }
 
@@ -178,7 +194,7 @@ void object::compute_inner_flux(dir::Direction dir, const double dt_h) {
                         slope_by(dir, i-di, j-dj, k-dk),
                         slope_by(dir, i,    j,    k),
                         slope_by(dir, i+di, j+dj, k+dk),
-                        dir, dt_h, gas());
+                        dir, dt_h, h(dir), gas());
 }
 
 void object::compute_inner_slope(dir::Direction dir) {
