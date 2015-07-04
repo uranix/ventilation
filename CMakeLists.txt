@@ -4,9 +4,13 @@ project(Ventilation)
 
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
 
+string(TIMESTAMP _date "%d.%m.%Y, %H:%M:%S")
+message(STATUS "Build timestamp is ${_date}")
+
 include(GetGitRevisionDescription)
 git_describe(GIT_VERSION --tags)
 message(STATUS "Configured version is ${GIT_VERSION}")
+file(REMOVE ${CMAKE_CURRENT_BINARY_DIR}/GitVersion.h)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/GitVersion.h.in ${CMAKE_CURRENT_BINARY_DIR}/GitVersion.h @ONLY)
 
 set(vent_SOURCES
@@ -26,15 +30,15 @@ set(vent_SOURCES
 	)
 
 if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Werror -Wextra -g -ffast-math -funroll-loops")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Werror -Wextra -g -funroll-loops")
 endif()
 
 if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Werror -Wextra -g -ffast-math -funroll-loops")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Werror -Wextra -g -funroll-loops")
 endif()
 
 if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Werror -Wextra -g -fast -fp-model fast=2")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Werror -Wextra -g")
 endif()
 
 find_package(OpenMP)
@@ -58,8 +62,8 @@ if(NOT DEFINED PRECISE_RIEMANN)
 	set(PRECISE_RIEMANN FALSE)
 endif()
 
-if(NOT DEFINED K_EPSILON)
-	set(K_EPSILON FALSE)
+if(NOT DEFINED TURBULENCE)
+	set(TURBULENCE FALSE)
 endif()
 
 if(NOT DEFINED FP_TRAP)
@@ -74,7 +78,7 @@ message(STATUS "Configuerd with following params")
 message(STATUS " ")
 message(STATUS "Use precise Riemann solver (-DPRECISE_RIEMANN): ${PRECISE_RIEMANN}")
 message(STATUS "Use entropy fix (-DENTROPY_FIX): ${ENTROPY_FIX}")
-message(STATUS "Use viscosity (-DK_EPSILON): ${K_EPSILON}")
+message(STATUS "Enable turbulence model (-DTURBULENCE): ${TURBULENCE}")
 message(STATUS "Use floating point traps (-DFP_TRAP): ${FP_TRAP}")
 message(STATUS "Number of components (-DNC): ${NC}")
 message(STATUS " ")
@@ -93,10 +97,10 @@ else()
 	list(APPEND vent_SOURCES src/predictor_cir.cpp)
 endif()
 
-if (${K_EPSILON})
-	add_definitions("-DK_EPSILON_MODEL=1")
+if (${TURBULENCE})
+	add_definitions("-DTURBULENCE=1")
 else()
-	add_definitions("-DK_EPSILON_MODEL=0")
+	add_definitions("-DTURBULENCE=0")
 endif()
 
 if (${FP_TRAP})

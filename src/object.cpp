@@ -34,33 +34,26 @@ const vec &object::g() const { return slvr->g(); }
 const gasinfo &object::gas() const { return slvr->gas(); }
 
 /* Per cell/face virtuals */
-void object::integrate(state &cell, const flux &left, const flux &right, dir::Direction, double h, const double, const double dt) {
+void object::integrate(state &cell, const flux &left, const flux &right, dir::Direction dir, double h, const double, const double dt) {
     for (int i = 0; i < nc; i++)
         cell.rho[i] -= dt * (right.fdens[i] - left.fdens[i]) / h;
     cell.rhou -= dt * (right.fmom - left.fmom) / h;
     cell.e -= dt * (right.fener - left.fener) / h;
 
-#if K_EPSILON_MODEL
-    const double C1e = 1.44;
-    const double C2e = 1.92;
+#if TURBULENCE
+    cell.gradu[dir] = 0.5 * (left.gradv + right.gradv);
 
-    double rhok = cell.density() * cell.k;
-    double rhoeps = cell.density() * cell.eps;
-
-    double Pk = cell.mut() * (left.gv2 + right.gv2);
-    rhok += dt * (left.frhok - right.frhok) / h + dt * (Pk - 1. / 3 * rhoeps);
-    rhoeps += dt * (left.frhoeps - right.frhoeps) / h
-        + dt * cell.eps / cell.k * (C1e * Pk - 1. / 3 * C2e * rhoeps);
-
-    cell.k = rhok / cell.density();
-    cell.eps = rhoeps / cell.density();
+    cell.rhok += dt * (left.frhok - right.frhok) / h;
+    cell.rhoeps += dt * (left.frhoeps - right.frhoeps) / h;
+#else
+    (void)dir;
 #endif
 }
 
 void object::integrate_rhs(state &cell, const state &source, const double, const double dt) {
     const double rho = cell.density();
     for (auto d : dir::DIRECTIONS) {
-        if (n(d) == 1) /* Don't integrate gravity by one-cell dimensions */
+        if (n(d) == 1) /* Don't integrate gravity along one-cell dimensions */
             continue;
         const double gd = g()(d);
         cell.e += dt * cell.rhou(d) * gd;
@@ -71,6 +64,38 @@ void object::integrate_rhs(state &cell, const state &source, const double, const
         cell.rho[i] += dt * source.rho[i];
     cell.rhou += dt * source.rhou;
     cell.e += dt * source.e;
+
+#if TURBULENCE
+    double Sxx, Syy, Szz, Sxy, Sxz, Syz;
+    Sxx = cell.gradu[0](dir::X);
+    Syy = cell.gradu[1](dir::Y);
+    Szz = cell.gradu[2](dir::Z);
+    Sxy = 0.5 * (cell.gradu[0](dir::Y) + cell.gradu[1](dir::X));
+    Sxz = 0.5 * (cell.gradu[0](dir::Z) + cell.gradu[2](dir::X));
+    Syz = 0.5 * (cell.gradu[1](dir::Z) + cell.gradu[2](dir::Y));
+
+    double mut = cell.turb_viscosity();
+    double Str, SS;
+    Str = Sxx + Syy + Szz;
+    SS = Sxx * Sxx + Syy * Syy + Szz * Szz + 2 * (Sxy * Sxy + Sxz * Sxz + Syz * Syz);
+
+    double Pk = 2 * mut * (SS - Str * Str / 3) - 2. / 3 * cell.rhok * Str;
+    cell.Pk = Pk;
+
+    const double C1e = 1.44;
+    const double C2e = 1.92;
+
+    const double rhok = cell.rhok;
+    const double rhoeps = cell.rhoeps;
+
+    const double itau = rhoeps / rhok;
+
+    // drk/dt = Pk - itau \hat rk
+    // dre/dt = itau (C1e Pk - C2e \hat re)
+
+    cell.rhok = (rhok + dt * Pk) / (1 + dt * itau);
+    cell.rhoeps = (rhoeps + dt * itau * C1e * Pk) / (1 + dt * itau * C2e);
+#endif
 }
 
 /* Per direction virtuals */

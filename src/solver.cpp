@@ -19,8 +19,17 @@ solver::solver(
 }
 
 void solver::save(const std::string &prefix) {
-    for (auto p : scene)
+    std::fstream f(prefix + "scene." + std::to_string(_step) + ".vtm", std::ios::out);
+    f << "<VTKFile type=\"vtkMultiBlockDataSet\" version=\"1.0\" byte_order=\"LittleEndian\">\n";
+    f << "  <vtkMultiBlockDataSet>\n";
+    int idx = 0;
+    for (auto p : scene) {
         p->save(prefix, _step);
+        f << "    <DataSet index=\"" << idx << "\" file=\"" << p->id + "." + std::to_string(_step) + ".vtr" << "\" />\n";
+        idx++;
+    }
+    f << "  </vtkMultiBlockDataSet>\n";
+    f << "</VTKFile>\n";
     for (auto t : tracers) {
         t->walk(prefix, _step, gas(), [this] (vec p) -> const state {
             for (auto o : scene) {

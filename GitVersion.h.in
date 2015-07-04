@@ -10,15 +10,15 @@ static const char VERSION[] = "Ventilation solver, "
 "with entropy fix, "
 #endif
 
-#if K_EPSILON_MODEL
-"with k-e model, "
+#if TURBULENCE
+"with turbulence, "
 #endif
 
 #if FP_TRAP
 "with FP exceptions, "
 #endif
 
-"revision @GIT_VERSION@, built on " __DATE__
+"revision @GIT_VERSION@, built on @_date@"
 #ifdef NDEBUG
 ", release version"
 #else

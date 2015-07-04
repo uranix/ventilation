@@ -17,11 +17,16 @@ void state::from_rup(const std::vector<double> &r, const vec &u, double p, const
     from_rue(r, u, eps);
 }
 
-#if K_EPSILON_MODEL
-    double state::mut() const {
-        const double Cmu = 0.09;
-        return Cmu * density() * k * k / eps;
-    }
+#if TURBULENCE
+double state::turb_viscosity() const {
+    const double Cmu = 0.09;
+
+    // For ghost cells
+    if (rhok == 0 && rhoeps == 0)
+        return -1;
+
+    return Cmu * rhok * rhok / rhoeps;
+}
 #endif
 
 void state::from_rue(const std::vector<double> &r, const vec &u, double eps) {
@@ -34,7 +39,7 @@ void state::from_rue(const std::vector<double> &r, const vec &u, double eps) {
     rhou = rs * u;
     e = rs * (eps + 0.5 * u.norm2());
 
-#if K_EPSILON_MODEL
+#if TURBULENCE
     // Estimated for
     // L = 1m, v = 10 m/s, Re = 7.5e5
     const double U = 10;
@@ -45,7 +50,7 @@ void state::from_rue(const std::vector<double> &r, const vec &u, double eps) {
     const double Cmu = 0.09;
     const double ell = 0.07 * L;
 
-    k = 1.5 * std::pow(U * I, 2);
-    this->eps = std::pow(Cmu, .75) * std::pow(k, 1.5) / ell;
+    rhok = 1.5 * std::pow(U * I, 2) * rs;
+    rhoeps = std::pow(Cmu, .75) * std::pow(rhok / rs, 1.5) / ell * rs;
 #endif
 }

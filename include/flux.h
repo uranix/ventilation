@@ -31,10 +31,10 @@ struct flux {
     double fdens[nc];
     vec fmom;
     double fener;
-#if K_EPSILON_MODEL
+#if TURBULENCE
     double frhok;
     double frhoeps;
-    double gv2;
+    vec gradv;
 #endif
 
     flux() {
@@ -46,10 +46,10 @@ struct flux {
             fdens[i] = 0;
         fmom = vec(0);
         fener = 0;
-#if K_EPSILON_MODEL
+#if TURBULENCE
         frhok = 0;
         frhoeps = 0;
-        gv2 = 0;
+        gradv = vec(0);
 #endif
     }
 
@@ -79,40 +79,57 @@ struct flux {
             const state &left = *_left;
             state right(left);
             right.rhou = -left.rhou;
+            right.rhok = right.rhoeps = 0;
             outer_solve_add(left, right, dir, Sfrac, gas);
-            add_k_epsilon(left, right, h, nullptr);
+            add_turbulence(left, right, h, nullptr);
         } else {
             const state &right = *_right;
             state left(right);
             left.rhou = -right.rhou;
+            left.rhok = left.rhoeps = 0;
             outer_solve_add(left, right, dir, Sfrac, gas);
-            add_k_epsilon(left, right, h, nullptr);
+            add_turbulence(left, right, h, nullptr);
         }
     }
 
 private:
-    void add_k_epsilon(const state &left, const state &right, const double h, const double *pfden) {
-#if K_EPSILON_MODEL
+    void add_turbulence(const state &left, const state &right, const double h, const double *pfden) {
+#if TURBULENCE
         const double sk = 1;
         const double se = 1.3;
 
-        const auto &gv = (right.velocity() - left.velocity()) / h;
-        gv2 = gv.norm2();
-        const double mut = 0.5 * (left.mut() + right.mut());
+        gradv = (right.velocity() - left.velocity()) / h;
+        double lmut = left.turb_viscosity();
+        double rmut = right.turb_viscosity();
+        if (lmut < 0)
+            lmut = rmut;
+        if (rmut < 0)
+            rmut = lmut;
+        const double mut = 0.5 * (lmut + rmut);
 
-        fmom -= mut * gv;
+        fmom -= mut * gradv;
+
         double fdenstot = 0;
         if (pfden) {
             for (int i = 0; i < nc; i++)
                 fdenstot += pfden[i];
         }
 
-        frhok = fdenstot * ((fdenstot > 0) ? left.k : right.k);
-        frhoeps = fdenstot * ((fdenstot > 0) ? left.eps : right.eps);
-        frhok -= mut / sk * (right.k - left.k) / h;
-        frhoeps -= mut / se * (right.eps - left.eps) / h;
+        double lk, rk, le, re;
+        lk = left .turb_energy();
+        rk = right.turb_energy();
+        le = left .turb_dissipation();
+        re = right.turb_dissipation();
+
+        frhok = fdenstot * (fdenstot > 0 ? lk : rk);
+        frhoeps = fdenstot * (fdenstot > 0 ? le : re);
+        frhok -= mut / sk * (rk - lk) / h;
+        frhoeps -= mut / se * (re - le) / h;
 #else
         (void)h;
+        (void)left;
+        (void)right;
+        (void)pfden;
 #endif
     }
     void outer_solve_add(const state &left, const state &right, dir::Direction dir, const double Sfrac, const gasinfo &gas) {
@@ -125,13 +142,19 @@ private:
 
         fmom += Sfrac * pred.fmom;
         fener += Sfrac * pred.fener;
-#if K_EPSILON_MODEL
+#if TURBULENCE
         double fdenstot = 0;
         for (int i = 0; i < nc; i++)
             fdenstot += pred.fden[i];
 
-        frhok += Sfrac * fdenstot * ((fdenstot > 0) ? left.k : right.k);
-        frhoeps += Sfrac * fdenstot * ((fdenstot > 0) ? left.eps : right.eps);
+        double lk, rk, le, re;
+        lk = left .turb_energy();
+        rk = right.turb_energy();
+        le = left .turb_dissipation();
+        re = right.turb_dissipation();
+
+        frhok += Sfrac * fdenstot * ((fdenstot > 0) ? lk : rk);
+        frhoeps += Sfrac * fdenstot * ((fdenstot > 0) ? le : re);
 #endif
     }
     void inner_solve_set(
@@ -156,7 +179,7 @@ private:
         fmom += corr.fmom;
         fener += corr.fener;
 
-        add_k_epsilon(left, right, h, pred.fden);
+        add_turbulence(left, right, h, pred.fden);
     }
 };
 
