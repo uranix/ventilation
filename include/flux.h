@@ -79,14 +79,18 @@ struct flux {
             const state &left = *_left;
             state right(left);
             right.rhou = -left.rhou;
+#if TURBULENCE
             right.rhok = right.rhoeps = 0;
+#endif
             outer_solve_add(left, right, dir, Sfrac, gas);
             add_turbulence(left, right, h, nullptr);
         } else {
             const state &right = *_right;
             state left(right);
             left.rhou = -right.rhou;
+#if TURBULENCE
             left.rhok = left.rhoeps = 0;
+#endif
             outer_solve_add(left, right, dir, Sfrac, gas);
             add_turbulence(left, right, h, nullptr);
         }
