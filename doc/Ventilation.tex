@@ -1,0 +1,336 @@
+\documentclass[12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T2A]{fontenc}
+\usepackage[english,russian]{babel}
+\usepackage{amsmath,amssymb}
+\usepackage{indentfirst}
+
+\author{Цыбулин Иван}
+\title{Сопряжение одномерных и трехмерных расчетных областей}
+
+\newcommand{\pd}[2]{\frac{\partial #1}{\partial #2}}
+\newcommand{\dpd}[2]{\dfrac{\partial #1}{\partial #2}}
+\renewcommand{\arraystretch}{1.2}
+\let\dividesymbol\div
+\renewcommand{\div}{\operatorname{div}}
+\newcommand{\grad}{\operatorname{grad}}
+\newcommand{\bvec}[1]{\boldsymbol{\mathbf{#1}}}
+\newcommand{\cutefrac}[2]{{}^{#1}\mkern-5mu/{\!}_#2}
+\newcommand{\half}{{\cutefrac{1}{2}}}
+\renewcommand{\iiint}{\int\hspace{-10pt}\int\hspace{-10pt}\int}
+\newcommand{\oiint}{%
+{}\subset\hspace{-6pt}\supset\hspace{-17.8pt}%
+\int\hspace{-10pt}\int%
+}%
+
+\begin{document}
+\maketitle
+
+\section{Общие положения}
+$$
+y = \oiint_{\partial V} x dx + z
+$$
+
+Рассмотрим трехмерную область, в которой среда описывается трехмерными уравнениями Эйлера для нескольких компонент
+\begin{equation}
+\begin{aligned}
+&\pd{\rho_i}{t} + \div \rho_i \bvec{u} = \dot m_i, \qquad i = 1, \dots, S\\
+&\pd{\rho \bvec{u}}{t} + \div \left(\rho \bvec{u} \otimes \bvec{u} + p\hat I\right) = \rho \bvec{g}\\
+&\pd{\rho E}{t} + \div (\rho E + p)\bvec{u} = \rho \bvec{u}\bvec{g} + \sum_i \dot m_i H_i,
+\end{aligned}
+\end{equation}
+где 
+\begin{gather*}
+\rho = \sum_i \rho_i\\
+E = \dfrac{u^2}{2} + \varepsilon\\
+p = (\gamma - 1)\rho\varepsilon\\
+\varepsilon = C_V T\\
+\gamma = \frac{C_P}{C_V}\\
+C_{V} = \frac{1}{\rho}\sum_i \frac{\rho_i R}{M_i (\gamma_i- 1)}\qquad
+C_{P} = \frac{1}{\rho}\sum_i \frac{\gamma_i\rho_i R}{M_i (\gamma_i- 1)}
+\end{gather*}
+
+\section{Численный метод решения задачи в трехмерной области}
+Численный метод решения задачи --- простейший конечно-объемный. Пусть $\vec{U}$ --- вектор консервативных 
+переменных, а $\vec{\bvec{F}}$ --- векторы потоков по каждому направлению.
+\begin{gather*}
+\vec{U} = \begin{pmatrix}
+\rho_1 & \dots & \rho_S & \rho u_x & \rho u_y & \rho u_z & \rho E
+\end{pmatrix}\\
+\vec{F}_x\big(\vec{U}\big) = \begin{pmatrix}
+\rho_1 u_x & \dots & \rho_S u_x & \rho u_x^2 + p & \rho u_x u_y & \rho u_x u_z & (\rho E + p) u_x
+\end{pmatrix}\\
+\vec{F}_y\big(\vec{U}\big) = \begin{pmatrix}
+\rho_1 u_y & \dots & \rho_S u_y & \rho u_x u_y & \rho u_y^2 + p & \rho u_y u_z & (\rho E + p) u_y
+\end{pmatrix}\\
+\vec{F}_z\big(\vec{U}\big) = \begin{pmatrix}
+\rho_1 u_z & \dots & \rho_S u_z & \rho u_x u_z & \rho u_y u_z & \rho u_z^2 + p & (\rho E + p) u_z
+\end{pmatrix}\\
+\vec{f} = \begin{pmatrix}
+\dot m_1 & \dots & \dot m_S & \rho g_x & \rho g_y & \rho g_z & \rho\bvec{u}\bvec{g} + \sum_i \dot 
+m_i 
+H_i
+\end{pmatrix}
+\end{gather*}
+
+Запишем закон сохранения в конечном объеме V:
+\begin{equation}
+\pd{}{t} \iiint_V \vec{U} dV + \oiint_{\partial V} \bvec{n}\vec{\bvec{F}}\big(\vec{U}\big) dS = 
+\iiint_V \vec{f} dV
+\end{equation}
+
+Поток на границе ячеек $\vec{U}_{i,j,k}$ и $\vec{U}_{i+1,j,k}$ вычисляется из решения задачи Римана:
+\[
+\bvec{n}\vec{\bvec{F}}_{i+\half,j,k} = 
+\bvec{n}\vec{\bvec{F}}\left(\mathcal{R}_{\bvec{n}}\big(\vec{U}_{i,j,k},\vec{U}_{i+1,j,k}\big)\right)
+\]
+Для внутренних границ интеграл заменяется на сумму аналогов 
+$\bvec{n}\vec{\bvec{F}}_{i+\half,j,k}$ по всем внутренним граням.
+
+Для каждой внешней (лежащей на границе области) грани ячейки строится набор пар $\vec{U}^{(p)}, S^{(p)}$ --- состояние $\vec{U}^{(p)}$ в $p$-й соседней ячейке и площадь контакта с $p$-й ячейкой $S^{(p)}$.
+Для внешних граней интеграл заменяется суммой
+\[
+\oiint_{\partial V_\text{ext}}  \bvec{n}\vec{\bvec{F}} dS 
+= \sum_p S^{(p)} \bvec{n} \vec{\bvec{F}}
+\left(\mathcal{R}_{\bvec{n}}\big(\vec{U}_{i,j,k},\vec{U}^{(p)}\big)\right)
+\]
+
+\section{Решение задачи Римана}
+Решение задачи Римана для многокомпонентного газа в направлении $\bvec{n}$ строится с помощью решения задачи 
+Римана о распаде между однокомпонентными газами с заданными показателями адиабаты.
+
+Введем $\theta_i = \dfrac{\rho_i}{\rho}$. Тогда
+\begin{gather*}
+\pd{\rho \theta_i}{t} + \div \rho \theta_i \bvec{u} = 0\\
+\theta_i\pd{\rho}{t} + \rho \pd{\theta_i}{t} + \theta_i \div \rho \theta_i \bvec{u} + 
+\rho (\bvec{u} \nabla) \theta_i = 0\\
+\pd{\theta_i}{t} + (\bvec{u} \nabla) \theta_i = 0
+\end{gather*}
+Величины $\theta$ переносятся со скоростью течения. Фактически, разрыв $\theta_i$ эволюционирует как контактный разрыв.
+
+Разобьем скорость течения $\bvec{u}$ на нормальную и касательную к плоскости разрыва составляющие:
+\[
+\bvec u = \bvec n u_n + \bvec{u}_{\tau}
+\]
+Касательные скорости также образуют контактный разрыв. Задача сводится к решению одномерной задачи Римана с нормальными 
+компонентами скорости:
+\[
+\left\{
+\tilde\rho, \tilde{u}_n, \tilde p
+\right\} = 
+\mathcal{R}_{1D}\Big(
+\left\{
+\rho, u_n, p, \gamma
+\right\}_L
+,
+\left\{
+\rho, u_n, p, \gamma
+\right\}_R
+\Big)
+\]
+
+Далее, в зависимости от знака $\tilde{u}_n$ сносятся либо правые, либо левые значения $\bvec{u}_{\tau}, \theta_i, \gamma$. Из этих значений определяется весь вектор консервативных величин $\vec{U}$ на границе ячеек.
+
+\section{Сопряжение одномерной и многомерной области}
+
+Рассмотрим одномерную трубу, состоящую из одной цепочки трехмерных ячеек. Пусть на границах трубы стоят отражающие 
+граничные условия. Потоки на границе получаются из решения задачи Римана для одинаковых газов, но нормальная 
+скорость газа снаружи стенки берется противоположной нормальной скорости газа внутри.
+\[
+\left\{
+\tilde\rho, \tilde{u}_n, \tilde p
+\right\} = 
+\mathcal{R}_{1D}\Big(
+\left\{
+\rho, u_n, p, \gamma
+\right\}_\text{in}
+,
+\left\{
+\rho, -u_n, p, \gamma
+\right\}_\text{in}
+\Big)
+\]
+При этом, очевидно, $\tilde{u}_n = 0$, а $\tilde{\rho}$ и $\tilde{p}$ как-то зависят от параметров газа внутри 
+трубы. Все компоненты нормального потока $\bvec{n}\vec{\bvec{F}}$ обнуляются, кроме компоненты нормального импульса, 
+где в нормальном потоке остается член $\tilde{p}$. Величина $\tilde{p}$ может быть грубо оценена (из размерных соображений)
+\[
+\tilde{p} = p \pm \rho u_n^2,
+\]
+где <<$+$>> соответствует $u_n > 0$, а <<$-$>> --- случаю $u_n < 0$.
+
+Стало быть, поперечный импульс эволюционирует по закону
+\[
+\pd{\rho |\bvec{u}_{\tau}|}{t} = -C\frac{\rho |\bvec{u}_\tau|^2}{h},
+\]
+где $C = O(1),\; h$ --- характерный диаметр трубы.
+При выводе этого уравнения игнорировался приток и отток поперечного импульса вдоль трубы. Характерное время 
+релаксации поперечного импульса $t_\text{relax} = \frac{h}{|\bvec{u}_\tau|}$.
+
+Идея перехода к одномерной области состоит в устремлении $t_\text{relax} \rightarrow 0$. То есть газ, попадая 
+в одномерную трубу теряет свой поперечный импульс мгновенно. Этого же эффекта можно добиться вообще не добавляя 
+поперечный импульс в одномерные ячейки, то есть обнулить соответствующие компоненты нормального потока вдоль трубы.
+Поскольку поперечная скорость газа в трубе теперь всегда будет равна нулю, граничные условия на стенках трубы 
+более не требуются, т.к. поток отражения теперь в точности равен нулю.
+
+Практически, между одномерными и трехмерными областями считается тот же самый нормальный поток, что и между
+трехмерными областями, но поток поперечного импульса просто не добавляется к поперечному импульсу одномерной ячейки
+\begin{gather*}
+\bvec{n}\bvec{F}^{3D} = 
+\begin{pmatrix}
+\rho_1 u_n & \dots & \rho_S u_n &
+ \rho u_n^2 + p & 
+ \rho u_n u_{\tau,1}\phantom{0} & 
+ \phantom{0}\rho u_n u_{\tau,2} & 
+(\rho E + p) u_n
+\end{pmatrix}\\
+\bvec{n}\bvec{F}^{1D} = 
+\begin{pmatrix}
+\rho_1 u_n & \dots & \rho_S u_n &
+ \rho u_n^2 + p & 
+ \phantom{\rho u_n}0\phantom{u_{\tau,2}} & 
+ \phantom{\rho u_n}0\phantom{u_{\tau,2}} & 
+ (\rho E + p) u_n
+\end{pmatrix}
+\end{gather*}
+
+\section{Реконструкция параметров в ячейке}
+Предположим, что в ячейке параметры удовлетворяют стационарным уравнениям газовой динамики
+\begin{equation}
+\begin{gathered}
+\pd{\rho u_z}{z} = 0\\
+\pd{}{z}\left[\rho u_z^2 + p\right] = -\rho g\\
+\pd{}{z}\left[(\rho E + p) u_z\right] = -\rho g u_z.
+\end{gathered}
+\label{eq:reconst}
+\end{equation}
+В дополнение к ним предположим $u_\bot = \operatorname{const}$. Интегральные средние для
+массы, импульса и полной энергии известны:
+\begin{gather*}
+\frac{1}{h}\int\limits_{-h/2}^{h/2} \rho dz = \overline\rho\\
+\frac{1}{h}\int\limits_{-h/2}^{h/2} \rho u_z dz = \overline{\rho u_z}\\
+\frac{1}{h}\int\limits_{-h/2}^{h/2} \rho E dz = \overline{\rho E}.
+\end{gather*}
+Предполагается, что ячейка имеет высоту $h$, а ее центр имеет $z$-координату равную $0$.
+Введем переменную $c^2 = \frac{\gamma p}{\rho}$ имеющую смысл квадрата скорости звука. При этом 
+система уравнений \eqref{eq:reconst} принимает вид 
+\begin{equation}
+\begin{gathered}
+\pd{\rho u_z}{z} = 0\\
+\pd{}{z}\left[\rho \left(u_z^2 + \frac{c^2}{\gamma}\right)\right] = -\rho g\\
+\pd{}{z}\left[\rho \left(\frac{u_\bot^2 + u_z^2}{2} + \frac{c^2}{\gamma-1}\right) u_z\right] = 
+-\rho g u_z.
+\end{gathered}
+\label{eq:reconst2}
+\end{equation}
+Поскольку $\rho u_z$ и $u_\bot^2$ не зависят от $z$, последнее уравнение упрощается до
+\[
+\pd{}{z}\left[\frac{u_z^2}{2} + \frac{c^2}{\gamma-1}\right] = 
+-g.
+\]
+Выражая $c^2 = (\gamma - 1) \left(A - g z - \frac{u_z^2}{2}\right)$
+и подставляя $u_z = \frac{\overline{\rho u_z}}{\rho}$, получаем одно уравнение для $\rho$:
+\begin{gather*}
+\pd{}{z}\left[
+\frac{\gamma + 1}{2\gamma}\frac{(\overline{\rho u_z})^2}{\rho(z)}
++\frac{A - gz}{\gamma}\rho(z)
+\right] = -\rho(z) g
+\end{gather*}
+Решение данного уравнения приводит к трансцендентному уравнению, в которое входят два параметра, 
+которые определяются из значений $\overline{\rho}, \overline{\rho u_z}, \overline{\rho E}$. Данный 
+путь непригоден для реализации.
+
+Вернемся к системе уравнений \eqref{eq:reconst2}:
+\begin{equation}
+\begin{gathered}
+\pd{\rho u_z}{z} = 0\\
+\pd{}{z}\left[\rho \left(u_z^2 + \frac{c^2}{\gamma}\right)\right] = -\rho g\\
+\pd{}{z}\left[\frac{u_z^2}{2} + \frac{c^2}{\gamma-1}\right] = -g.
+\end{gathered}
+\label{eq:reconst3}
+\end{equation}
+Перейдем к производным $\pd{\rho}{z}, \pd{u_z}{z}, \pd{c}{z}$:
+\begin{equation}
+\left\{
+\begin{array}{@{}c@{}c@{}c@{}c@{}c@{}c@{}c}
+u_z\pd{\rho}{z} &{}+{}&\rho \pd{u_z}{z} &&&{}={}& 0\\
+\left(u_z^2 + \frac{c^2}{\gamma}\right)\pd{\rho}{z} &{}+{}&
+2\rho u_z \pd{u_z}{z} &{}+{}&
+\frac{2\rho c}{\gamma} \pd{c}{z} &{}={}& -\rho g\\
+&&u_z \pd{u_z}{z} &{}+{}&\frac{2c}{\gamma- 1} \pd{c}{z}&{}={}& -g.
+\end{array}
+\right.
+\label{eq:reconst4}
+\end{equation}
+Упростим систему:
+\begin{equation}
+\left\{
+\begin{array}{@{}c@{}c@{}c@{}c@{}c@{}c@{}c}
+(\gamma - 1)u_z^2\pd{\rho}{z} &{}+{}&(\gamma - 1)\rho u_z\pd{u_z}{z} &&&{}={}& 0\\
+\left(c^2-\gamma u_z^2\right)\pd{\rho}{z} &{}+{}&
+&&
+{2\rho c}\pd{c}{z} &{}={}& -\gamma\rho g\\
+&&(\gamma-1)\rho u_z \pd{u_z}{z} &{}+{}&{2\rho c} \pd{c}{z}&{}={}& (1 - \gamma)\rho 
+g.
+\end{array}
+\right.
+\label{eq:reconst5}
+\end{equation}
+Решение данной системы относительно производных имеет вид
+\begin{equation}
+\begin{gathered}
+\pd{\ln \rho}{z} = -\frac{g}{c^2 - u_z^2}\\
+\pd{\ln u_z}{z} = \frac{g}{c^2 - u_z^2}\\
+\pd{\ln c}{z} = -\frac{\gamma-1}{2}\frac{g}{c^2 - u_z^2}
+\label{eq:sol}
+\end{gathered}
+\end{equation}
+Примем предположение о постоянности величины $k = \frac{g}{c^2 - u_z^2} = \operatorname{const}$. 
+Тогда
+\begin{equation}
+\begin{aligned}
+\rho &{}= \rho_0 e^{-kz}\\
+u_z &{}= u_{z,0} e^{kz}\\
+\varepsilon &{}= \varepsilon_0 e^{(1-\gamma)kz}.
+\label{eq:sol2}
+\end{aligned}
+\end{equation}
+Среднее значение величины $A = A_0 e^{\beta z}$ равно
+\[
+\begin{gathered}
+\overline{A} \equiv \frac{1}{h} \int\limits_{-h/2}^{h/2} A_0 e^{\beta z} dz = \frac{2A_0}{\beta h} 
+\frac{e^{\beta h/2} - e^{-\beta h/2}}{2} = A_0 \frac{\sh \frac{\beta h}{2}}{\frac{\beta h}{2}} 
+\equiv A_0 \operatorname{shc} 
+\frac{\beta h}{2}\\
+A_0 = \frac{\overline{A}}{\operatorname{shc} \frac{\beta h}{2}}
+\end{gathered}
+\]
+
+Алгоритм реконструкции:
+\begin{enumerate}
+\item Вычисляем $k$ по средним значениям в ячейке
+\[
+k = \frac{2\overline\rho^2 g}{2\gamma(\gamma-1)\overline\rho\overline{\rho E} - (\gamma^2 - \gamma 
++ 2) (\overline{\rho u_z})^2}.
+\]
+\item Находим $\rho_0, u_{z,0}$ по формулам
+\[
+\rho_0 = \frac{\overline{\rho}}{\operatorname{shc} \frac{kh}{2}}, \qquad u_{z,0} = 
+\frac{\overline{\rho 
+u_z}}{\rho_0}.
+\]
+\item Найдем $\varepsilon_0$. Выразим среднее значение $\rho E$
+\begin{multline*}
+\overline{\rho E} \equiv
+\frac{1}{h}\int\limits_{-h/2}^{h/2} \rho E dz = 
+\frac{1}{h}\int\limits_{-h/2}^{h/2} \rho \left(\frac{u_z^2}{2} + \frac{u_\bot^2}{2} + 
+\varepsilon\right) dz = \\ = \overline{\rho} \frac{u_{z,0}^2 + u_\bot^2}{2}
++\rho_0\varepsilon_0 \operatorname{shc} \frac{\gamma k h}{2}.
+\end{multline*}
+Отсюда легко получить выражение для $\varepsilon_0$:
+\[
+\varepsilon_0 = \frac{2\overline{\rho E} - \overline{\rho} (u_{z,0}^2 + u_{\bot}^2)}{2\rho_0 
+\operatorname{shc} \frac{\gamma kh}{2}}
+\]
+\end{enumerate}
+
+\end{document}

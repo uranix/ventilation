@@ -1,0 +1,320 @@
+\documentclass[12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T2A]{fontenc}
+\usepackage[english,russian]{babel}
+\usepackage{amsmath,amssymb}
+\usepackage{indentfirst}
+
+\newcommand{\pd}[2]{\frac{\partial #1}{\partial #2}}
+\newcommand{\dpd}[2]{\dfrac{\partial #1}{\partial #2}}
+\renewcommand{\arraystretch}{1.2}
+\let\dividesymbol\div
+\renewcommand{\div}{\operatorname{div}}
+\newcommand{\grad}{\operatorname{grad}}
+\newcommand{\bvec}[1]{\boldsymbol{\mathbf{#1}}}
+\newcommand{\cutefrac}[2]{{}^{#1}\mkern-5mu/{\!}_#2}
+\newcommand{\half}{{\cutefrac{1}{2}}}
+\newcommand{\tr}{\mathsf{T}}
+\renewcommand{\iiint}{\int\hspace{-10pt}\int\hspace{-10pt}\int}
+\newcommand{\oiint}{%
+{}\subset\hspace{-6pt}\supset\hspace{-17.8pt}%
+\int\hspace{-10pt}\int%
+}%
+
+\author{Цыбулин Иван}
+\title{Система уравнений многокомпонентной газовой динамики}
+
+\begin{document}
+\maketitle
+\section{Обозначения}
+\begin{itemize}
+\item $\rho_i$ --- плотность $i$-й компоненты.
+\item $M_i$ --- молярная масса компоненты $i$.
+\item $\rho \equiv \sum \rho_i$ --- плотность многокомпонентной смеси.
+\item $\theta_i \equiv \frac{\rho_i}{\rho}$ --- массовая доля компоненты $i$ в смеси.
+\item $x_i$ --- молярная доля компоненты $i$ в смеси.
+\item $\bvec q = (u, v, w)$ --- скорость газа.
+\item $\gamma_i$ --- показатель адиабаты компоненты $i$.
+\item $\beta_i \equiv \frac{1}{\gamma_i - 1}$ --- молярная теплоемкость при постоянном объеме 
+компоненты $i$, выраженная в единицах $R$.
+\item $T$ --- температура.
+\item $p$ --- давление.
+\item $\varepsilon$ --- внутренняя энергия газовой смеси.
+\item $e = \rho \left(\varepsilon + \frac{q^2}{2}\right)$ --- полная энергия смеси.
+\end{itemize}
+
+\subsection{Усредненные величины}
+В элементарном объеме $V$ находится масса $\rho_i V$ $i$-й компоненты или $\frac{\rho_i V}{M_i}$ 
+моль этой компоненты. Средняя молярная масса газа
+\[
+M = \frac{\sum_i \rho_i V}{\sum_i \rho_i V / M_i} = \frac{\rho}{\sum_i \rho_i / M_i}.
+\]
+\[
+\frac{\rho}{M} = \sum_i \frac{\rho_i}{M_i} = \rho\sum_i\frac{\theta_i}{M_i}.
+\]
+\[
+\frac{1}{M} = \sum_i \frac{\theta_i}{M_i}
+\]
+Теплоемкость при постоянном объеме одного моля смеси
+\[
+\beta R = c_v = \sum_i x_i c_{v,i}
+= \sum_i x_i \beta_i R
+\]
+\[
+\beta = \frac{\sum_i \beta_i \theta_i / M_i}{\sum_i \theta_i / M_i} = 
+M \sum_i \beta_i \frac{\theta_i}{M_i}
+\]
+\[
+\frac{\beta}{M} = \sum_i \frac{\beta_i}{M_i} \theta_i
+\]
+Легко видеть, что показатель адиабаты $\gamma$ смеси
+\[
+\frac{\gamma \beta}{M} = \sum_i \frac{\beta_i \gamma_i}{M_i} \theta_i = 
+\sum_i \frac{1 + \beta_i}{M_i} \theta_i = \frac{1}{M} + \frac{\beta}{M} = \frac{1+\beta}{M}
+\]
+связан с $\beta$ тем же соотношением
+\[
+\beta = \frac{1}{\gamma - 1}.
+\]
+И $\beta$ и $\gamma$ являются функциями исключительно $\theta_i$.
+
+\section{Система уравнений}
+Система уравнений в консервативной форме ($n$ - число компонент)
+\begin{gather*}
+\pd{\bvec U(\bvec V)}{t} + \pd{\bvec F(\bvec V)}{x} = 0\\
+\bvec V = \begin{pmatrix}
+\rho & \theta_2 & \theta_3 & \dots & \theta_n & u & v & w & c
+\end{pmatrix}\\
+\bvec U = \begin{pmatrix}
+\rho & \rho_2 & \rho_3 & \dots & \rho_n & \rho u & \rho v & \rho w & e
+\end{pmatrix}\\
+\bvec F = \begin{pmatrix}
+\rho u & \rho_2 u & \rho_3 u & \dots & \rho_n u & \rho u^2 + p & \rho u v & \rho u w & (e + p)u
+\end{pmatrix}
+\end{gather*}
+
+Выражение консервативных величин через неконсервативные
+\begin{gather*}
+\rho_i = \rho \theta_i\\
+q^2 = u^2 + v^2 + w^2\\
+e = \rho \left(\frac{\beta c^2}{\gamma}+\frac{q^2}{2}\right)\\
+p = \frac{\rho c^2}{\gamma}\\
+e + p = \rho \left(\beta c^2+\frac{q^2}{2}\right).
+\end{gather*}
+
+\subsection{Спектральное разложение}
+
+Матрица $\bvec A = \pd{\bvec F}{\bvec V} \left(\pd{\bvec U}{\bvec V}\right)^{-1}$. 
+\begin{gather*}
+\bvec \Omega \bvec A = \bvec \Lambda \bvec \Omega\\
+\bvec \Omega \pd{\bvec F}{\bvec V} 
+= \bvec \Lambda \bvec \Omega\pd{\bvec U}{\bvec V} \\
+\bvec \omega_i^\tr \pd{\bvec F}{\bvec V} 
+= \lambda_i \bvec \omega_i \pd{\bvec U}{\bvec V} \\
+\bvec \omega_i^\tr \left(\pd{\bvec F}{\bvec V} - \lambda_i \pd{\bvec U}{\bvec V}\right) = \bvec 0\\
+\end{gather*}
+\[
+\pd{\bvec U}{\bvec V} = 
+\begin{pmatrix}
+1 & 0 & 0 & \dots & 0 & 0 & 0 & 0 & 0\\
+\theta_2 & \rho & 0 & \dots & 0 & 0 & 0 & 0 & 0\\
+\theta_3 & 0 & \rho & \dots & 0 & 0 & 0 & 0 & 0\\
+ &  &  & \ddots\\
+\theta_n & 0 & 0 & \dots & \rho & 0 & 0 & 0 & 0\\ 
+u & 0 & 0 & \dots & 0 & \rho & 0 & 0 & 0\\ 
+v & 0 & 0 & \dots & 0 & 0 & \rho & 0 & 0\\ 
+w & 0 & 0 & \dots & 0 & 0 & 0 & \rho & 0\\ 
+e / \rho & \rho c^2 \pd{(\beta/\gamma)}{\theta_2} & \rho c^2 \pd{(\beta/\gamma)}{\theta_3} & \dots 
+& \rho c^2 \pd{(\beta/\gamma)}{\theta_n} & \rho u & \rho v & \rho w & 2\rho c \beta/\gamma
+\end{pmatrix}
+\]
+\[
+\pd{\bvec F}{\bvec V} = 
+\begin{pmatrix}
+u & 0 & 0 & \dots & 0 & \rho & 0 & 0 & 0\\
+u\theta_2 & \rho u & 0 & \dots & 0 & \rho_2 & 0 & 0 & 0\\
+u\theta_3 & 0 & \rho u & \dots & 0 & \rho_3 & 0 & 0 & 0\\
+ &  &  & \ddots\\
+u\theta_n & 0 & 0 & \dots & \rho u & \rho_n & 0 & 0 & 0\\ 
+u^2 + \frac{c^2}{\gamma} & 
+\rho c^2\pd{(1/\gamma)}{\theta_2} & 
+\rho c^2\pd{(1/\gamma)}{\theta_3} & 
+\dots & 
+\rho c^2\pd{(1/\gamma)}{\theta_n} & 
+2\rho u & 0 & 0 & \frac{2\rho c}{\gamma} \\ 
+u v & 0 & 0 & \dots & 0 & \rho v & \rho u & 0 & 0\\ 
+u w & 0 & 0 & \dots & 0 & \rho w & 0 & \rho u & 0\\ 
+\frac{p+e}{\rho}u & 
+\rho u c^2 \pd{\beta}{\theta_2} & 
+\rho u c^2 \pd{\beta}{\theta_3} & \dots & 
+\rho u c^2 \pd{\beta}{\theta_n} & p + e + \rho u^2 & \rho uv & \rho uw & 2\rho c u\beta
+\end{pmatrix}
+\]
+Пусть $\lambda_i = u + s_i$. Тогда
+\[
+\operatorname{det}\left(
+\pd{\bvec F}{\bvec V} - \lambda_i \pd{\bvec U}{\bvec V}
+\right) =
+\operatorname{det}\left(
+\pd{\bvec F}{\bvec V} - u \pd{\bvec U}{\bvec V} - s_i \pd{\bvec U}{\bvec V}
+\right) = 
+\operatorname{det}\left(
+\bvec G - s_i \pd{\bvec U}{\bvec V}
+\right)
+\]
+\[
+\bvec G = \pd{\bvec F}{\bvec V} - u \pd{\bvec U}{\bvec V} =
+\begin{pmatrix}
+0 & 0 & 0 & \dots & 0 & \rho & 0 & 0 & 0\\
+0 & 0 & 0 & \dots & 0 & \rho_2 & 0 & 0 & 0\\
+0 & 0 & 0 & \dots & 0 & \rho_3 & 0 & 0 & 0\\
+ &  &  & \ddots\\
+0 & 0 & 0 & \dots & 0 & \rho_n & 0 & 0 & 0\\ 
+\frac{c^2}{\gamma} & 
+\rho c^2\pd{(1/\gamma)}{\theta_2} & 
+\rho c^2\pd{(1/\gamma)}{\theta_3} & 
+\dots & 
+\rho c^2\pd{(1/\gamma)}{\theta_n} & 
+\rho u & 0 & 0 & \frac{2\rho c}{\gamma} \\ 
+0 & 0 & 0 & \dots & 0 & \rho v & 0 & 0 & 0\\ 
+0 & 0 & 0 & \dots & 0 & \rho w & 0 & 0 & 0\\ 
+\frac{uc^2}{\gamma} & 
+\rho u c^2 \pd{(1/\gamma)}{\theta_2} & 
+\rho u c^2 \pd{(1/\gamma)}{\theta_3} & \dots & 
+\rho u c^2 \pd{(1/\gamma)}{\theta_n} & p + e & 0 & 0 & \frac{2\rho c u}{\gamma}
+\end{pmatrix}
+\]
+Матрица $\bvec G$ имеет размер $n+4 \times n+4$. У этой матрицы $n+2$ левых собственных вектора, 
+соответствующих $s_i = 0$.
+\[
+\bvec \Omega_{0} \bvec G = \bvec 0.
+\]
+\[
+\bvec \Omega_{0} = \begin{pmatrix}
+\theta_2 & -1 & 0 & \dots & 0 & 0 & 0 & 0 & 0\\
+\theta_3 & 0 & -1 & \dots & 0 & 0 & 0 & 0 & 0\\
+&&&\ddots\\
+\theta_n & 0 & 0 & \dots & -1 & 0 & 0 & 0 & 0\\
+u^2 - \beta c^2 - \frac{q^2}{2}  &
+0 & 0 & \dots & 0 & -u & 0 & 0 & 1\\
+v & 0 & 0 & \dots & 0 & 0 & -1 & 0 & 0\\
+w & 0 & 0 & \dots & 0 & 0 & 0 & -1 & 0
+\end{pmatrix}
+\]
+Остальные два собственных вектора матрицы $\pd{\bvec F}{\bvec U}$
+\begin{gather*}
+s_{+} = +c\\
+\bvec \omega^\tr_{+} = 
+\begin{pmatrix}
+- \frac{q^2}{2} + \beta c u - \frac{c^2}{\gamma} 
+\sum_{i=2}^n \theta_i \pd{\beta}{\theta_i}
+,&
+\frac{c^2}{\gamma}\pd{\beta}{\theta_2},&
+\frac{c^2}{\gamma}\pd{\beta}{\theta_3},&
+\dots,&
+\frac{c^2}{\gamma}\pd{\beta}{\theta_n},&
+u - \beta c, & v, & w, & -1
+\end{pmatrix}\\
+s_{-} = -c\\
+\bvec \omega^\tr_{-} = 
+\begin{pmatrix}
+- \frac{q^2}{2} - \beta c u - \frac{c^2}{\gamma} 
+\sum_{i=2}^n \theta_i \pd{\beta}{\theta_i}
+,&
+\frac{c^2}{\gamma}\pd{\beta}{\theta_2},&
+\frac{c^2}{\gamma}\pd{\beta}{\theta_3},&
+\dots,&
+\frac{c^2}{\gamma}\pd{\beta}{\theta_n},&
+u + \beta c, & v, & w, & -1
+\end{pmatrix}
+\end{gather*}
+
+Матрица левых собственных векторов
+\[
+\bvec \Omega =
+\begin{pmatrix}
+\theta_2 & -1 & 0 & \dots & 0 & 0 & 0 & 0 & 0\\
+\theta_3 & 0 & -1 & \dots & 0 & 0 & 0 & 0 & 0\\
+&&&\ddots\\
+\theta_n & 0 & 0 & \dots & -1 & 0 & 0 & 0 & 0\\
+u^2 - \beta c^2 - \frac{q^2}{2} &
+0 & 0 & \dots & 0 & -u & 0 & 0 & 1\\
+v & 0 & 0 & \dots & 0 & 0 & -1 & 0 & 0\\
+w & 0 & 0 & \dots & 0 & 0 & 0 & -1 & 0\\
+- \frac{q^2}{2} + \beta c u - \frac{c^2}{\gamma} 
+\sum_{i=2}^n \theta_i \pd{\beta}{\theta_i}
+&
+\frac{c^2}{\gamma}\pd{\beta}{\theta_2}&
+\frac{c^2}{\gamma}\pd{\beta}{\theta_3}&
+\dots&
+\frac{c^2}{\gamma}\pd{\beta}{\theta_n}&
+u - \beta c & v & w & -1\\
+- \frac{q^2}{2} - \beta c u - \frac{c^2}{\gamma} 
+\sum_{i=2}^n \theta_i \pd{\beta}{\theta_i}
+&
+\frac{c^2}{\gamma}\pd{\beta}{\theta_2}&
+\frac{c^2}{\gamma}\pd{\beta}{\theta_3}&
+\dots&
+\frac{c^2}{\gamma}\pd{\beta}{\theta_n}&
+u + \beta c & v & w & -1
+\end{pmatrix}
+\]
+Определитель матрицы $\bvec \Omega$ равен $2\beta^2 c^3$.
+Обратную матрицу можно представить компактно, если ввести вектора
+\[
+\bvec r = \begin{pmatrix}
+1 & \theta_2 & \theta_3 & \dots & \theta_n &
+u & v & w & \frac{q^2}{2} + \beta c^2
+\end{pmatrix}^\tr
+\]
+и
+\[
+\bvec \ell = \begin{pmatrix}
+\frac{c^2}{\gamma}\pd{\beta}{\theta_2}&
+\frac{c^2}{\gamma}\pd{\beta}{\theta_3}&
+\dots&
+\frac{c^2}{\gamma}\pd{\beta}{\theta_n}&
+1 & v & w & \frac{1}{2} & \frac{1}{2}
+\end{pmatrix}.
+\]
+Обратная матрица представима в виде $\bvec \Omega^{-1} = \bvec T - \frac{1}{\beta c^2} \bvec r 
+\bvec \ell$, где
+\[
+\bvec T = \begin{pmatrix}
+ 0 & 0 & \dots & 0 & 0 & 0 & 0 & 0 & 0\\
+-1 & 0 & \dots & 0 & 0 & 0 & 0 & 0 & 0\\
+0 & -1 & \dots & 0 & 0 & 0 & 0 & 0 & 0\\
+&& \ddots\\
+0&0&\dots&-1& 0 & 0 & 0 & 0 & 0\\
+0&0&\dots& 0& 0 & 0 & 0 & -\frac{1}{2\beta c} & \frac{1}{2\beta c}\\
+0&0&\dots& 0& 0 & -1 & 0 & 0 & 0\\
+0&0&\dots& 0& 0 & 0 & -1 & 0 & 0\\
+0&0&\dots& 0& 1 & 0 & 0 & -\frac{u}{2\beta c} & \frac{u}{2\beta c}
+\end{pmatrix}.
+\]
+Собственные значения матрицы $\bvec A$, соответствующие строкам матрицы $\bvec \Omega$ равны
+\[
+\bvec \Lambda = \operatorname{diag}(u, u, \dots, u, u + c, u - c).
+\]
+\section{Производные}
+Учтем, что $\theta_1 = 1 - \sum_{i = 2}^n \theta_i$ и 
+\begin{gather*}
+\frac{\beta}{M} = \sum_i \frac{\beta_i\theta_i}{M_i} = 
+\frac{1 - \sum_{i=2}^n \theta_i}{M_1}\beta_1
++\sum_{i=2}^n \frac{\beta_i\theta_i}{M_i}\\
+\frac{1}{M} = \sum_i \frac{\theta_i}{M_i} = 
+\frac{1 - \sum_{i=2}^n \theta_i}{M_1}
++\sum_{i=2}^n \frac{\theta_i}{M_i}
+\end{gather*}
+\begin{multline*}
+\pd{\beta}{\theta_i} = 
+\pd{}{\theta_i}\left(\frac{\beta}{M}\right)M
++\frac{\beta M}{M^2} \pd{M}{\theta_i} =
+\pd{}{\theta_i}\left(\frac{\beta}{M}\right)M
+-\beta M \pd{}{\theta_i}\left(\frac{1}{M}\right) = \\
+\left(\frac{\beta_i}{M_i}-\frac{\beta_1}{M_1}\right)M + 
+M \left(\frac{\beta}{M_1} - \frac{\beta}{M_i}\right) = 
+M \left(\frac{\beta - \beta_1}{M_1} + \frac{\beta_i - \beta}{M_i}\right).
+\end{multline*}
+
+\end{document}
