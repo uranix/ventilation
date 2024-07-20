@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.14)
 
 project(Ventilation)
 
@@ -12,6 +12,7 @@ git_describe(GIT_VERSION --tags)
 message(STATUS "Configured version is ${GIT_VERSION}")
 file(REMOVE ${CMAKE_CURRENT_BINARY_DIR}/GitVersion.h)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/GitVersion.h.in ${CMAKE_CURRENT_BINARY_DIR}/GitVersion.h @ONLY)
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 set(vent_SOURCES
 	src/state.cpp
@@ -112,23 +113,20 @@ endif()
 add_definitions("-DNC=${NC}")
 
 find_package(SWIG 3.0 REQUIRED)
-include(${SWIG_USE_FILE})
+include(UseSWIG)
 
 find_package(Eigen3 REQUIRED)
 include_directories(${EIGEN3_INCLUDE_DIR})
 
-find_package(PythonLibs)
-include_directories(${PYTHON_INCLUDE_PATH})
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
+find_package(Python3 COMPONENTS Development)
 
 include_directories(include/)
 add_library(vent SHARED ${vent_SOURCES})
 
-SET_SOURCE_FILES_PROPERTIES(pyvent.i PROPERTIES CPLUSPLUS ON)
-SET_SOURCE_FILES_PROPERTIES(pyvent.i PROPERTIES SWIG_FLAGS "-Wall")
-SWIG_ADD_MODULE(pyvent python pyvent.i)
-SWIG_LINK_LIBRARIES(pyvent ${PYTHON_LIBRARIES} vent)
+set_source_files_properties(pyvent.i PROPERTIES CPLUSPLUS ON)
+set_source_files_properties(pyvent.i PROPERTIES SWIG_FLAGS "-Wall")
+swig_add_library(pyvent LANGUAGE python SOURCES pyvent.i)
+swig_link_libraries(pyvent Python3::Python vent)
 
 #add_executable(main main.cpp)
 #target_link_libraries(main vent)

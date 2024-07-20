@@ -20,6 +20,7 @@
 %ignore dir::DirectionIterator;
 %ignore dir::DirectionIterator::operator++();
 %ignore vec::operator()(dir::Direction) const;
+%ignore vec::operator=(const vec&);
 
 %include "vec.h"
 

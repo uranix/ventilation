@@ -1,6 +1,4 @@
 import sys
-sys.path.append('..')
-
 import time
 import math
 import shutil
@@ -82,11 +80,11 @@ solver = Solver(scene, [tracer], .7);
 solver.set_gas(gas)
 solver.set_gravity(vec(0, 0, -g));
 
-print '\n%s\n' % solver.version();
+print('\n%s\n' % solver.version());
 
 timemarks = [.02 * x for x in range(100)]
 
-prevtime = time.clock()
+prevtime = time.time()
 prevstep = 0
 
 try:
@@ -103,24 +101,24 @@ os.mkdir("vtks.%d/" % NL)
 os.mkdir("csv.%d/" % NL)
 
 tend = timemarks[-1]
-print 'Simulating up to %f s' % tend
+print('Simulating up to %f s' % tend)
 
 solver.save('vtks.%d/' % NL)
 while timemarks:
     solver.integrate()
     while timemarks and (solver.time() >= timemarks[0]):
-        nowtime = time.clock()
+        nowtime = time.time()
         step = solver.step();
         speed = (step - prevstep) / (nowtime - prevtime)
         lefttimesim = tend - solver.time(); # sim s
         timescale = speed * solver.timestep(); # sim s / rt s
         secsleft = int(lefttimesim / timescale);
-        minsleft = secsleft / 60;
+        minsleft = secsleft // 60;
         secsleft = secsleft - 60 * minsleft;
-        hoursleft = minsleft / 60;
+        hoursleft = minsleft // 60;
         minsleft = minsleft - hoursleft * 60;
-        print 'step = %8d, t = %8.2e, dt = %8.2e, speed = %6.2f steps/sec (%6.2f ms per step), %.2dh %.2dm %.2ds ETC' % \
-                (step, solver.time(), solver.timestep(), speed, 1000. / speed, hoursleft, minsleft, secsleft)
+        print('step = %8d, t = %8.2e, dt = %8.2e, speed = %6.2f steps/sec (%6.2f ms per step), %.2dh %.2dm %.2ds ETC' % \
+                (step, solver.time(), solver.timestep(), speed, 1000. / speed, hoursleft, minsleft, secsleft))
         prevstep = step;
         prevtime = nowtime;
         solver.save('vtks.%d/' % NL)

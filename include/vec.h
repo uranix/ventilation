@@ -23,6 +23,8 @@ struct vec {
     /** Construct vector from components */
     vec(double x, double y, double z) : x(x), y(y), z(z) { }
 
+    vec& operator=(const vec&) = default;
+
     double &operator()(dir::Direction d) {
         if (d == dir::X)
             return x;
